@@ -216,7 +216,7 @@ try:
                 )
 
                 # --- NOUVEAU BILAN HYDRIQUE ---
-                rfu_color = "🔴" if bilan_h['niveau'] == "STRESS FORT" else ("🟠" if bilan_h['niveau'] == "SURVEILLANCE" else "🟢")
+                rfu_color = "🔴" if "STRESS FORT" in bilan_h['niveau'] else ("🟠" if "SURVEILLANCE" in bilan_h['niveau'] else "🟢")
                 st.metric(
                     f"{rfu_color} Bilan Hydrique (RFU)",
                     f"{bilan_h['rfu_pct']}%",
@@ -296,7 +296,7 @@ try:
 
                 st.line_chart(df_rfu, color=['#0068C9', '#FF4B4B', '#FFA500']) # Bleu, Rouge, Orange
             else:
-                st.info("Historique du bilan hydrique non disponible (calcul inactif en dormance).")
+                st.info("Historique du bilan hydrique non disponible.")
             # ---------------------------------------------
 
             # Météo actuelle
