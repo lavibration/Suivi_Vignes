@@ -128,6 +128,10 @@ class DataManager:
                 if 'caracteristiques' in r and isinstance(r['caracteristiques'], str) and r['caracteristiques'].startswith('{'):
                     try: r['caracteristiques'] = json.loads(r['caracteristiques'])
                     except: pass
+                # Coercion numérique pour les nouveaux champs
+                if 'mouillage_pct' in r: r['mouillage_pct'] = self._get_num(r['mouillage_pct'], 100.0)
+                if 'surface_traitee' in r: r['surface_traitee'] = self._get_num(r['surface_traitee'], 0.0)
+                if 'dose_kg_ha' in r: r['dose_kg_ha'] = self._get_num(r['dose_kg_ha'], 0.0)
             return {'traitements': recs}
 
         elif key == 'meteo_historique':
