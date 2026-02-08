@@ -487,15 +487,15 @@ class GestionTraitements:
     """Gestion des traitements et calcul de la protection résiduelle"""
     FONGICIDES = {
         'bouillie_bordelaise': {'nom': 'Bouillie bordelaise', 'persistance_jours': 10, 'lessivage_seuil_mm': 30,
-                                'type': 'contact', 'dose_reference_kg_ha': 2.0},
+                                'type': 'contact', 'dose_reference_kg_ha': 2.0, 'n_amm': '2010486'},
         'cymoxanil': {'nom': 'Cymoxanil', 'persistance_jours': 7, 'lessivage_seuil_mm': 20, 'type': 'penetrant',
-                      'dose_reference_kg_ha': 0.5},
+                      'dose_reference_kg_ha': 0.5, 'n_amm': '9500057'},
         'fosetyl_al': {'nom': 'Fosétyl-Al', 'persistance_jours': 14, 'lessivage_seuil_mm': 40, 'type': 'systemique',
-                       'dose_reference_kg_ha': 2.5},
+                       'dose_reference_kg_ha': 2.5, 'n_amm': '2110118'},
         'mancozebe': {'nom': 'Mancozèbe', 'persistance_jours': 7, 'lessivage_seuil_mm': 25, 'type': 'contact',
-                      'dose_reference_kg_ha': 1.6},
+                      'dose_reference_kg_ha': 1.6, 'n_amm': '8000494'},
         'soufre': {'nom': 'Soufre', 'persistance_jours': 8, 'lessivage_seuil_mm': 15, 'type': 'contact',
-                   'dose_reference_kg_ha': 3.0}
+                   'dose_reference_kg_ha': 3.0, 'n_amm': '2080066'}
     }
     COEF_POUSSE = {
         'repos': 0.0, 'debourrement': 0.5, 'pousse_10cm': 2.0, 'pre_floraison': 1.8,
@@ -513,18 +513,39 @@ class GestionTraitements:
     def sauvegarder_historique(self):
         self.storage.save_data(self.key, self.historique)
 
-    def ajouter_traitement(self, parcelle: str, date: str, produit: str, dose_kg_ha: Optional[float] = None):
+    def ajouter_traitement(self, parcelle: str, date: str, produit: str, dose_kg_ha: Optional[float] = None,
+                           heure: str = "10:00", mouillage_pct: float = 100.0, surface_traitee: float = 0.0,
+                           type_utilisation: str = "Plein champ", cible: str = "Mildiou",
+                           conditions_meteo: str = "Ensoleillé, vent faible", applicateur: str = "",
+                           systeme_culture: str = "PC", culture: str = "Vigne"):
         produit_key = produit.lower().replace(' ', '_')
         if produit_key not in self.FONGICIDES:
             print(f"⚠️  Produit '{produit}' inconnu. Ajout avec paramètres par défaut.")
             caracteristiques = {'nom': produit, 'persistance_jours': 7, 'lessivage_seuil_mm': 25, 'type': 'contact',
-                                'dose_reference_kg_ha': 1.0}
+                                'dose_reference_kg_ha': 1.0, 'n_amm': 'N/A'}
         else:
             caracteristiques = self.FONGICIDES[produit_key].copy()
+
         if dose_kg_ha is None:
             dose_kg_ha = caracteristiques['dose_reference_kg_ha']
-        traitement = {'parcelle': parcelle, 'date': date, 'produit': produit_key, 'dose_kg_ha': dose_kg_ha,
-                      'caracteristiques': caracteristiques}
+
+        traitement = {
+            'parcelle': parcelle,
+            'date': date,
+            'produit': produit_key,
+            'dose_kg_ha': dose_kg_ha,
+            'caracteristiques': caracteristiques,
+            # Nouveaux champs légaux
+            'heure': heure,
+            'mouillage_pct': mouillage_pct,
+            'surface_traitee': surface_traitee,
+            'type_utilisation': type_utilisation,
+            'cible': cible,
+            'conditions_meteo': conditions_meteo,
+            'applicateur': applicateur,
+            'systeme_culture': systeme_culture,
+            'culture': culture
+        }
         self.historique['traitements'].append(traitement)
         self.sauvegarder_historique()
         print(f"✅ Traitement '{caracteristiques['nom']}' ajouté pour '{parcelle}' le {date}")

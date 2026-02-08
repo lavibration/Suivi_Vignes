@@ -42,5 +42,17 @@ client_x509_cert_url = "..."
 
 Remplacez les valeurs par celles contenues dans votre fichier JSON de compte de service. Assurez-vous que la `private_key` contient les `\n` littéraux si nécessaire.
 
-## 4. Fonctionnement
+## 4. Structure des onglets (Référence)
+L'application gère automatiquement la création des colonnes lors de la première sauvegarde, mais voici les colonnes principales utilisées :
+
+### Onglet `traitements` (Registre Phytosanitaire)
+- `parcelle`, `date`, `heure`, `culture`, `systeme_culture`, `produit`, `n_amm` (via `caracteristiques`), `dose_kg_ha`, `mouillage_pct`, `surface_traitee`, `type_utilisation`, `cible`, `conditions_meteo`, `applicateur`.
+
+### Onglet `vendanges`
+- `annee`, `type` (CAMPAGNE ou TICKET), et les métriques associées (poids, degré, etc.).
+
+### Onglet `config`
+- Une colonne `json_content` contenant toute la configuration technique.
+
+## 5. Fonctionnement
 Si les secrets sont configurés, l'application synchronisera automatiquement les données avec la Google Sheet. En l'absence de configuration, elle continuera d'utiliser les fichiers JSON locaux.
