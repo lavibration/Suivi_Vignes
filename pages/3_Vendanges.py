@@ -10,6 +10,7 @@ import os
 from datetime import datetime, date
 import pandas as pd
 import json
+from storage import DataManager
 import traceback
 
 # --- Initialisation des chemins et Imports ---
@@ -26,31 +27,26 @@ st.title("🍇 Suivi des Vendanges")
 
 # Classe de gestion des vendanges
 class GestionVendanges:
-    def __init__(self, fichier='vendanges.json'):
-        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.fichier = os.path.join(script_dir, fichier)
+    def __init__(self, fichier='vendanges'):
+        self.key = fichier.replace('.json', '')
+        self.storage = DataManager()
         self.donnees = self.charger_donnees()
 
     def charger_donnees(self):
-        """Charge les données vendanges"""
-        try:
-            with open(self.fichier, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                # Migration : supprimer campagne_courante si elle existe
-                if 'campagne_courante' in data:
-                    del data['campagne_courante']
-                return data
-        except FileNotFoundError:
-            return self.creer_structure_defaut()
+        """Charge les données vendanges via DataManager"""
+        data = self.storage.load_data(self.key, default_factory=self.creer_structure_defaut)
+        # Migration : supprimer campagne_courante si elle existe
+        if 'campagne_courante' in data:
+            del data['campagne_courante']
+        return data
 
     def creer_structure_defaut(self):
         """Crée structure par défaut avec historique vide"""
         return {'campagnes': []}
 
     def sauvegarder(self):
-        """Sauvegarde les données"""
-        with open(self.fichier, 'w', encoding='utf-8') as f:
-            json.dump(self.donnees, f, indent=2, ensure_ascii=False)
+        """Sauvegarde les données via DataManager"""
+        self.storage.save_data(self.key, self.donnees)
 
     def get_campagne(self, annee):
         """Récupère une campagne par année"""
