@@ -5,7 +5,7 @@
       "status": "validee",
       "tickets": [],
       "parametres": {
-        "rendement_theorique": NaN,
+        "rendement_theorique": null,
         "prix_u": 5.0962,
         "frais_vinif_u": 0.1573,
         "prime_u": 0.0663
@@ -27,7 +27,7 @@
         "ca_ha": 1867.8001378973104,
         "euro_hl": 54.41098692307692,
         "poids_ha": 4.767726161369193,
-        "rendement_reel": NaN
+        "rendement_reel": null
       },
       "parcelles_vendangees": []
     },
@@ -36,7 +36,7 @@
       "status": "validee",
       "tickets": [],
       "parametres": {
-        "rendement_theorique": NaN,
+        "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
         "prime_u": 0.0782
@@ -58,7 +58,7 @@
         "ca_ha": 4376.649212713936,
         "euro_hl": 68.75497511061945,
         "poids_ha": 8.841075794621027,
-        "rendement_reel": NaN
+        "rendement_reel": null
       },
       "parcelles_vendangees": []
     },
@@ -67,7 +67,7 @@
       "status": "validee",
       "tickets": [],
       "parametres": {
-        "rendement_theorique": NaN,
+        "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
         "prime_u": 0.0782
@@ -89,7 +89,7 @@
         "ca_ha": 3985.42070611247,
         "euro_hl": 61.02265157232705,
         "poids_ha": 9.070904645476773,
-        "rendement_reel": NaN
+        "rendement_reel": null
       },
       "parcelles_vendangees": []
     },
@@ -98,7 +98,7 @@
       "status": "validee",
       "tickets": [],
       "parametres": {
-        "rendement_theorique": NaN,
+        "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
         "prime_u": 0.0782
@@ -120,7 +120,7 @@
         "ca_ha": 4285.969095354523,
         "euro_hl": 59.4691879715573,
         "poids_ha": 10.009779951100246,
-        "rendement_reel": NaN
+        "rendement_reel": null
       },
       "parcelles_vendangees": []
     },
