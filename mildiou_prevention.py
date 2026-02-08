@@ -387,7 +387,7 @@ class ModeleBilanHydrique:
                            debug: bool = False) -> Dict:
         """
         Calcule la Réserve Utile (AWC/RFU) restante en %
-        Utilise un Kc basé sur le mois pour contourner le GDD < 90 jours.
+        Utilise un cycle hydrologique annuel (départ au 1er Nov).
         """
         aujourdhui = datetime.now().date()
         annee_actuelle = aujourdhui.year
@@ -397,17 +397,26 @@ class ModeleBilanHydrique:
             print(f"Date début | Pluie | P.Eff | ET₀ | Kc | ETc | RFU (mm) | RFU (%)")
             print("-" * 70)
 
-        # 1. Déterminer la date de départ (Biofix ou 1er Mars)
-        date_debut_str = f"{annee_actuelle}-03-01"
-        date_biofix = parcelle.get('date_debourrement')
-        if date_biofix:
-            date_biofix_dt = datetime.strptime(date_biofix, '%Y-%m-%d').date()
-            if date_biofix_dt.year == annee_actuelle and date_biofix_dt <= aujourdhui:
-                date_debut_str = date_biofix
+        # 1. Déterminer le début du cycle hydrologique (1er Novembre précédent)
+        if aujourdhui.month >= 11:
+            date_cycle_debut = datetime(annee_actuelle, 11, 1).date()
+        else:
+            date_cycle_debut = datetime(annee_actuelle - 1, 11, 1).date()
 
-        date_debut = datetime.strptime(date_debut_str, '%Y-%m-%d').date()
+        # Trouver la date de début réelle (plus ancienne donnée disponible dans le cycle)
+        dates_disponibles = sorted([datetime.strptime(d, '%Y-%m-%d').date() for d in meteo_historique.keys()])
+        dates_utiles = [d for d in dates_disponibles if d >= date_cycle_debut and d <= aujourdhui]
 
-        # 2. Initialiser le réservoir
+        if not dates_utiles:
+            # Si aucune donnée dans le cycle, on ne peut pas calculer
+            return {
+                'rfu_pct': 100.0, 'rfu_mm': rfu_max_mm, 'rfu_max_mm': rfu_max_mm,
+                'niveau': "Données insuffisantes", 'historique_pct': {}
+            }
+
+        date_debut = dates_utiles[0]
+
+        # 2. Initialiser le réservoir (On suppose le sol plein au début de l'hiver/recharge)
         rfu_actuelle_mm = rfu_max_mm
         rfu_historique_pct = {}
 
@@ -465,14 +474,15 @@ class ModeleBilanHydrique:
             rfu_pct = (rfu_actuelle_mm / rfu_max_mm) * 100
 
         # 9. Déterminer le niveau d'alerte
-        if stade_manuel == 'repos':  # Basé sur le stade MANUEL
-            niveau = "Dormance"
-        elif rfu_pct <= 30:
+        if rfu_pct <= 30:
             niveau = "STRESS FORT"
         elif rfu_pct <= 60:
             niveau = "SURVEILLANCE"
         else:
             niveau = "CONFORTABLE"
+
+        if stade_manuel == 'repos':
+            niveau += " (Dormance)"
 
         return {
             'rfu_pct': round(rfu_pct, 1),

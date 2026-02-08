@@ -253,14 +253,14 @@ try:
             })
 
         # --- NOUVELLE ALERTE HYDRIQUE ---
-        if bilan_h.get('niveau') == "STRESS FORT":
+        if "STRESS FORT" in bilan_h.get('niveau', ''):
             toutes_alertes.append({
                 'parcelle': parcelle['nom'],
                 'urgence': 'haute', # Stress hydrique fort est une alerte haute
                 'message': f"💧 STRESS HYDRIQUE FORT",
                 'details': f"Réserve utile (RFU) estimée à {bilan_h['rfu_pct']}%."
             })
-        elif bilan_h.get('niveau') == "SURVEILLANCE":
+        elif "SURVEILLANCE" in bilan_h.get('niveau', ''):
              toutes_alertes.append({
                 'parcelle': parcelle['nom'],
                 'urgence': 'moyenne',
@@ -355,7 +355,7 @@ try:
                     )
 
                     # --- NOUVELLE MÉTRIQUE BILAN HYDRIQUE ---
-                    rfu_color = "🔴" if bilan_h['niveau'] == "STRESS FORT" else ("🟠" if bilan_h['niveau'] == "SURVEILLANCE" else "🟢")
+                    rfu_color = "🔴" if "STRESS FORT" in bilan_h['niveau'] else ("🟠" if "SURVEILLANCE" in bilan_h['niveau'] else "🟢")
                     st.metric(
                         f"{rfu_color} Bilan Hydrique (RFU)",
                         f"{bilan_h['rfu_pct']}%",
