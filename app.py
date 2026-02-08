@@ -8,6 +8,7 @@ from datetime import datetime
 import sys
 import os
 import json
+from storage import DataManager
 
 # Ajouter le répertoire parent au path pour importer mildiou_prevention
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -71,13 +72,10 @@ def init_systeme():
 
 # Fonction pour sauvegarder le stade d'une parcelle
 def sauvegarder_stade(parcelle_nom, nouveau_stade, date_debourrement=None):
-    """Sauvegarde le nouveau stade dans config_vignoble.json"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_file = os.path.join(script_dir, 'config_vignoble.json')
-
+    """Sauvegarde le nouveau stade via DataManager"""
+    storage = DataManager()
     try:
-        with open(config_file, 'r', encoding='utf-8') as f:
-            config = json.load(f)
+        config = storage.load_data('config_vignoble')
 
         for parcelle in config['parcelles']:
             if parcelle['nom'] == parcelle_nom:
@@ -88,9 +86,7 @@ def sauvegarder_stade(parcelle_nom, nouveau_stade, date_debourrement=None):
                     parcelle['date_debourrement'] = None
                 break
 
-        with open(config_file, 'w', encoding='utf-8') as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
-
+        storage.save_data('config_vignoble', config)
         return True
     except Exception as e:
         st.error(f"Erreur lors de la sauvegarde : {e}")
@@ -282,7 +278,7 @@ try:
             st.markdown(f"""
             <div class="{alert_class}">
                 <strong>{urgence_icon} {alerte['parcelle']}</strong><br>
-                ➜ {alerte['message']}<br> 
+                ➜ {alerte['message']}<br>
                 {alerte['details'] if alerte['details'] else ''}
             </div>
             """, unsafe_allow_html=True)
@@ -493,9 +489,9 @@ try:
 except Exception as e:
     st.error(f"""
     ❌ **Erreur lors du chargement**
-    
+
     {str(e)}
-    
+
     Vérifiez que :
     - Le fichier `config_vignoble.json` existe et est correct
     - Le fichier `mildiou_prevention.py` est présent

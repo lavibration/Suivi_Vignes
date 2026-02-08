@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 import requests
 import os
+from storage import DataManager
 
 # Bibliothèques optionnelles pour graphiques
 try:
@@ -50,38 +51,36 @@ class ConfigVignoble:
         'maturation': 0.3
     }
 
-    def __init__(self, config_file: str = 'config_vignoble.json'):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.config_file = os.path.join(script_dir, config_file)
+    def __init__(self, config_file: str = 'config_vignoble'):
+        self.config_key = config_file.replace('.json', '')
+        self.storage = DataManager()
         self.load_config()
 
     def load_config(self):
-        """Charge la configuration depuis le fichier JSON"""
-        try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                self.latitude = config['latitude']
-                self.longitude = config['longitude']
-                for p in config['parcelles']:
-                    if 'date_debourrement' not in p:
-                        p['date_debourrement'] = None
-                    if 'rfu_max_mm' not in p:
-                        p['rfu_max_mm'] = config.get('parametres', {}).get('rfu_max_mm_default', 100.0)
+        """Charge la configuration via le DataManager"""
+        config = self.storage.load_data(self.config_key, default_factory=None)
 
-                self.parcelles = config['parcelles']
+        if config:
+            self.latitude = config['latitude']
+            self.longitude = config['longitude']
+            for p in config['parcelles']:
+                if 'date_debourrement' not in p:
+                    p['date_debourrement'] = None
+                if 'rfu_max_mm' not in p:
+                    p['rfu_max_mm'] = config.get('parametres', {}).get('rfu_max_mm_default', 100.0)
 
-                default_params = self.get_default_parameters()
-                self.parametres = config.get('parametres', default_params)
-                for key, value in default_params.items():
-                    if key not in self.parametres:
-                        self.parametres[key] = value
+            self.parcelles = config['parcelles']
 
-                self.surface_totale = sum(p['surface_ha'] for p in self.parcelles)
-                print(f"✅ Configuration chargée depuis : {self.config_file}")
+            default_params = self.get_default_parameters()
+            self.parametres = config.get('parametres', default_params)
+            for key, value in default_params.items():
+                if key not in self.parametres:
+                    self.parametres[key] = value
 
-        except FileNotFoundError:
-            print(f"⚠️ Fichier de configuration non trouvé : {self.config_file}")
-            print("Création d'un fichier par défaut.")
+            self.surface_totale = sum(p['surface_ha'] for p in self.parcelles)
+            print(f"✅ Configuration chargée via DataManager")
+        else:
+            print(f"⚠️ Configuration non trouvée. Création par défaut.")
             self.create_default_config()
 
     def get_default_parameters(self):
@@ -105,7 +104,7 @@ class ConfigVignoble:
         }
 
     def create_default_config(self):
-        """Crée un fichier de configuration par défaut"""
+        """Crée une configuration par défaut"""
         config = {
             "latitude": 43.21,
             "longitude": 5.54,
@@ -122,28 +121,23 @@ class ConfigVignoble:
             ],
             "parametres": self.get_default_parameters()
         }
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(config, f, indent=2, ensure_ascii=False)
+        self.storage.save_data(self.config_key, config)
         self.load_config()  # Recharger après création
 
     def sauvegarder_config(self):
-        """Sauvegarde la configuration actuelle dans le fichier JSON"""
+        """Sauvegarde la configuration actuelle via le DataManager"""
         config_a_sauver = {
             "latitude": self.latitude,
             "longitude": self.longitude,
             "parcelles": self.parcelles,
             "parametres": self.parametres
         }
-        try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                current_config = json.load(f)
-                if 'localisation' in current_config:
-                    config_a_sauver['localisation'] = current_config['localisation']
-        except FileNotFoundError:
-            pass
+        # Tenter de garder la localisation si elle existe
+        current_config = self.storage.load_data(self.config_key)
+        if 'localisation' in current_config:
+            config_a_sauver['localisation'] = current_config['localisation']
 
-        with open(self.config_file, 'w', encoding='utf-8') as f:
-            json.dump(config_a_sauver, f, indent=2, ensure_ascii=False)
+        self.storage.save_data(self.config_key, config_a_sauver)
 
     def update_parcelle_stade_et_date(self, nom_parcelle: str, nouveau_stade: str,
                                       date_debourrement: Optional[str] = None) -> bool:
@@ -508,21 +502,16 @@ class GestionTraitements:
         'floraison': 1.0, 'nouaison': 0.8, 'fermeture_grappe': 0.5, 'veraison': 0.2, 'maturation': 0.1
     }
 
-    def __init__(self, fichier_historique: str = 'traitements.json'):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.fichier = os.path.join(script_dir, fichier_historique)
+    def __init__(self, fichier_historique: str = 'traitements'):
+        self.key = fichier_historique.replace('.json', '')
+        self.storage = DataManager()
         self.historique = self.charger_historique()
 
     def charger_historique(self) -> Dict:
-        try:
-            with open(self.fichier, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return {'traitements': []}
+        return self.storage.load_data(self.key, default_factory=lambda: {'traitements': []})
 
     def sauvegarder_historique(self):
-        with open(self.fichier, 'w', encoding='utf-8') as f:
-            json.dump(self.historique, f, indent=2, ensure_ascii=False)
+        self.storage.save_data(self.key, self.historique)
 
     def ajouter_traitement(self, parcelle: str, date: str, produit: str, dose_kg_ha: Optional[float] = None):
         produit_key = produit.lower().replace(' ', '_')
@@ -594,24 +583,19 @@ class GestionTraitements:
 class GestionHistoriqueAlertes:
     """Gestion de l'historique des alertes et analyses"""
 
-    def __init__(self, fichier='historique_alertes.json'):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.fichier = os.path.join(script_dir, fichier)
+    def __init__(self, fichier='historique_alertes'):
+        self.key = fichier.replace('.json', '')
+        self.storage = DataManager()
         self.historique = self.charger_historique()
 
     def charger_historique(self):
-        try:
-            with open(self.fichier, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return self.creer_structure_defaut()
+        return self.storage.load_data(self.key, default_factory=self.creer_structure_defaut)
 
     def creer_structure_defaut(self):
         return {'campagnes': []}
 
     def sauvegarder(self):
-        with open(self.fichier, 'w', encoding='utf-8') as f:
-            json.dump(self.historique, f, indent=2, ensure_ascii=False)
+        self.storage.save_data(self.key, self.historique)
 
     def get_campagne(self, annee):
         for c in self.historique['campagnes']:
@@ -738,6 +722,7 @@ class SystemeDecision:
     }
 
     def __init__(self):
+        self.storage = DataManager()
         self.config = ConfigVignoble()
         self.meteo = MeteoAPI(self.config.latitude, self.config.longitude)
         self.traitements = GestionTraitements()
@@ -753,25 +738,11 @@ class SystemeDecision:
         self._mettre_a_jour_historique_meteo()
 
     def _charger_meteo_historique(self) -> Dict[str, Dict]:
-        """Charge l'historique MÉTÉO jour par jour depuis un fichier JSON."""
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        fichier = os.path.join(script_dir, self.METEO_HISTORIQUE_FILE)
-        try:
-            if os.path.exists(fichier):
-                with open(fichier, 'r') as f:
-                    return json.load(f)
-            return {}
-        except (json.JSONDecodeError):
-            print(f"⚠️ Erreur: Le fichier {fichier} est corrompu. Redémarrage de l'historique.")
-            return {}
-        except Exception as e:
-            print(f"⚠️ Erreur lors du chargement de l'historique Météo: {e}")
-            return {}
+        """Charge l'historique MÉTÉO via le DataManager."""
+        return self.storage.load_data(self.METEO_HISTORIQUE_FILE.replace('.json', ''))
 
     def _sauvegarder_meteo_historique(self):
-        """Sauvegarde l'historique MÉTÉO jour par jour dans un fichier JSON."""
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        fichier = os.path.join(script_dir, self.METEO_HISTORIQUE_FILE)
+        """Sauvegarde l'historique MÉTÉO via le DataManager."""
         try:
             aujourdhui = datetime.now().date()
             data_a_sauver = {}
@@ -787,10 +758,14 @@ class SystemeDecision:
                 except (ValueError, TypeError):
                     print(f"Ignoré : clé invalide dans l'historique météo : {date_str}")
 
-            with open(fichier, 'w') as f:
-                json.dump(data_a_sauver, f, indent=4)
+            self.storage.save_data(self.METEO_HISTORIQUE_FILE.replace('.json', ''), data_a_sauver)
+
+            # Sauvegarder aussi les GDD séparément pour l'onglet GDD demandé
+            gdd_data = {d: v.get('gdd_jour', 0.0) for d, v in data_a_sauver.items() if 'gdd_jour' in v}
+            self.storage.save_data('gdd_historique', gdd_data)
+
         except Exception as e:
-            print(f"⚠️ Erreur lors de la sauvegarde GDD: {e}")
+            print(f"⚠️ Erreur lors de la sauvegarde Météo/GDD: {e}")
 
     # --- MODIFIÉ : Correction du Bug de persistance ---
     def _mettre_a_jour_historique_meteo(self) -> Dict:
