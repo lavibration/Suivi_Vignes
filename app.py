@@ -363,6 +363,12 @@ try:
                         delta_color="off"
                     )
 
+                    st.metric(
+                        "📉 Indice Stress (Ks)",
+                        f"{bilan_h.get('ks_actuel', 1.0):.2f}",
+                        help="1.0 = pas de stress, < 1.0 = régulation stomatique"
+                    )
+
                 # IPI (Si activé, sous les blocs)
                 if afficher_ipi and risque_m['ipi'] is not None:
                     st.metric(
@@ -397,7 +403,9 @@ try:
 
                 message_mildiou = decision['action']
                 message_oidium = decision['alerte_oidium'] if decision['alerte_oidium'] else "Risque faible"
-                message_hydrique = f"RFU à {bilan_h['rfu_pct']}% ({bilan_h['niveau']})"
+                ks_val = bilan_h.get('ks_actuel', 1.0)
+                ks_msg = f" (Ks: {ks_val:.2f})" if ks_val < 1.0 else ""
+                message_hydrique = f"RFU à {bilan_h['rfu_pct']}% ({bilan_h['niveau']}){ks_msg}"
 
                 alert_class = get_alert_class(urgence_globale_str)
                 urgence_icon = get_urgence_color(urgence_globale_str)

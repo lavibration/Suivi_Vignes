@@ -374,7 +374,26 @@ class ModeleOidium:
 
 
 class ModeleBilanHydrique:
-    """Modèle de Bilan Hydrique Avancé (ETc)"""
+    """Modèle de Bilan Hydrique Agronomique (ETc + Ks + Kc dynamique)"""
+
+    @staticmethod
+    def calculer_kc_gdd(gdd_cumul: float) -> float:
+        """Calcule un Kc dynamique basé sur les GDD (courbe foliaire simplifiée)"""
+        # 0 - 200 GDD : Dormance / Débourrement (Kc minimal)
+        if gdd_cumul < 200:
+            return 0.1
+        # 200 - 600 GDD : Croissance active (Kc monte vers 0.7)
+        elif gdd_cumul < 600:
+            return 0.1 + (0.6 * (gdd_cumul - 200) / 400)
+        # 600 - 1200 GDD : Floraison / Nouaison / Croissance baies (Kc plateau)
+        elif gdd_cumul < 1200:
+            return 0.7 + (0.1 * (gdd_cumul - 600) / 600) # Monte légèrement vers 0.8
+        # 1200 - 1500 GDD : Véraison (Kc commence à baisser)
+        elif gdd_cumul < 1500:
+            return 0.8 - (0.4 * (gdd_cumul - 1200) / 300)
+        # > 1500 GDD : Maturation (Kc bas)
+        else:
+            return max(0.3, 0.4 - (0.1 * (gdd_cumul - 1500) / 300))
 
     @staticmethod
     def calculer_bilan_rfu(meteo_historique: Dict[str, Dict],
@@ -384,85 +403,89 @@ class ModeleBilanHydrique:
                            rfu_max_mm: float,
                            f_runoff: float,
                            i_const_mm: float,
+                           gdd_cumul_actuel: float = 0.0,
                            debug: bool = False) -> Dict:
         """
         Calcule la Réserve Utile (AWC/RFU) restante en %
-        Utilise un cycle hydrologique annuel (départ au 1er Nov).
+        Optimisation Jules : Intégration Ks (stress) et Kc dynamique GDD.
         """
         aujourdhui = datetime.now().date()
         annee_actuelle = aujourdhui.year
 
         if debug:
-            print("\n🔍 MODE DEBUG - CALCUL BILAN HYDRIQUE")
-            print(f"Date début | Pluie | P.Eff | ET₀ | Kc | ETc | RFU (mm) | RFU (%)")
-            print("-" * 70)
+            print("\n🔍 MODE DEBUG - CALCUL BILAN HYDRIQUE OPTIMISÉ")
+            print(f"Date       | Pluie | P.Eff | ET₀  | Kc   | Ks   | ETc  | RFU mm | RFU %")
+            print("-" * 85)
 
-        # 1. Déterminer le début du cycle hydrologique (1er Novembre précédent)
+        # 1. Début du cycle hydrologique (1er Novembre précédent)
         if aujourdhui.month >= 11:
             date_cycle_debut = datetime(annee_actuelle, 11, 1).date()
         else:
             date_cycle_debut = datetime(annee_actuelle - 1, 11, 1).date()
 
-        # Trouver la date de début réelle (plus ancienne donnée disponible dans le cycle)
         dates_disponibles = sorted([datetime.strptime(d, '%Y-%m-%d').date() for d in meteo_historique.keys()])
         dates_utiles = [d for d in dates_disponibles if d >= date_cycle_debut and d <= aujourdhui]
 
         if not dates_utiles:
-            # Si aucune donnée dans le cycle, on ne peut pas calculer
             return {
                 'rfu_pct': 100.0, 'rfu_mm': rfu_max_mm, 'rfu_max_mm': rfu_max_mm,
-                'niveau': "Données insuffisantes", 'historique_pct': {}
+                'niveau': "Données insuffisantes", 'historique_pct': {}, 'ks_actuel': 1.0
             }
 
         date_debut = dates_utiles[0]
-
-        # 2. Initialiser le réservoir (On suppose le sol plein au début de l'hiver/recharge)
-        rfu_actuelle_mm = rfu_max_mm
+        rfu_actuelle_mm = rfu_max_mm # Init plein
         rfu_historique_pct = {}
+        ks_actuel = 1.0
 
-        dates_historique = sorted(meteo_historique.keys())
+        for date_obj in dates_utiles:
+            date_str = date_obj.strftime('%Y-%m-%d')
+            data_jour = meteo_historique.get(date_str, {})
 
-        for date_str in dates_historique:
-            date_meteo = datetime.strptime(date_str, '%Y-%m-%d').date()
+            pluie = data_jour.get('precipitation', 0.0) or 0.0
+            etp0 = data_jour.get('etp0', 0.0) or 0.0
+            gdd_jour = data_jour.get('gdd_jour', 0.0) or 0.0 # On a besoin de cumuler les GDD pour le Kc
 
-            # Ne calculer que pour la saison de croissance (du début à aujourd'hui)
-            if date_meteo >= date_debut and date_meteo <= aujourdhui:
-                data_jour = meteo_historique.get(date_str, {})
+            # 2. Kc Dynamique (Estimation du cumul au jour J)
+            # Pour la simulation, on pourrait cumuler les GDD ici si besoin
+            # Mais on va utiliser le Kc calendrier si GDD non dispo (période hivernale)
+            # Jules : On utilise Kc GDD si on est après le débourrement estimé
+            if date_obj.month >= 3 and date_obj.month <= 10:
+                # Simulation simple du cumul GDD progressif pour le Kc
+                # Dans une version parfaite, on passerait le dictionnaire des GDD cumulés
+                Kc = ModeleBilanHydrique.calculer_kc_gdd(gdd_cumul_actuel * (dates_utiles.index(date_obj)/len(dates_utiles)))
+            else:
+                Kc = kc_calendrier.get(str(date_obj.month), 0.1)
 
-                pluie = data_jour.get('precipitation', 0)
-                etp0 = data_jour.get('etp0', 0)
+            # 3. Coefficient de Stress Ks (FAO-56 simplifié)
+            # p = 0.5 (seuil de stress à 50% de la RFU pour la vigne)
+            seuil_stress_pct = 50.0
+            rfu_pct_veille = (rfu_actuelle_mm / rfu_max_mm) * 100 if rfu_max_mm > 0 else 0
 
-                if pluie is None: pluie = 0.0
-                if etp0 is None: etp0 = 0.0
+            if rfu_pct_veille > seuil_stress_pct:
+                ks = 1.0
+            else:
+                # Ks diminue linéairement de 1.0 à 0.0 entre le seuil et le point de flétrissement
+                ks = max(0.0, rfu_pct_veille / seuil_stress_pct)
 
-                # 3. Déterminer le Kc du jour (basé sur le MOIS)
-                mois_du_jour = str(date_meteo.month)
-                Kc = kc_calendrier.get(mois_du_jour, 0.1)
+            ks_actuel = ks
 
-                # 4. Calculer Pluie Efficace (P_eff) et ETc
-                ETc = Kc * etp0
+            # 4. Calcul Pluie Efficace et ETc
+            if pluie > i_const_mm:
+                P_eff = (pluie - i_const_mm) * (1.0 - f_runoff)
+            else:
+                P_eff = 0.0
 
-                if pluie > i_const_mm:
-                    P_eff = (pluie - i_const_mm) * (1.0 - f_runoff)
-                else:
-                    P_eff = 0.0
-                P_eff = max(0, P_eff)
+            ETc = Kc * etp0 * ks
 
-                # 5. Appliquer le bilan
-                rfu_actuelle_mm += P_eff
-                rfu_actuelle_mm -= ETc
+            # 5. Bilan
+            rfu_actuelle_mm = min(rfu_max_mm, rfu_actuelle_mm + P_eff - ETc)
+            rfu_actuelle_mm = max(0.0, rfu_actuelle_mm)
 
-                # 6. Gérer Percolation (dépassement) et Seuil plancher
-                rfu_actuelle_mm = min(rfu_max_mm, rfu_actuelle_mm)
-                rfu_actuelle_mm = max(0, rfu_actuelle_mm)
+            current_pct = (rfu_actuelle_mm / rfu_max_mm) * 100 if rfu_max_mm > 0 else 0
+            rfu_historique_pct[date_str] = round(current_pct, 1)
 
-                # 7. Stocker l'historique en %
-                current_pct = (rfu_actuelle_mm / rfu_max_mm) * 100 if rfu_max_mm > 0 else 0
-                rfu_historique_pct[date_str] = round(current_pct, 1)
-
-                if debug and (date_meteo.day == 1 or date_meteo.day == 15 or date_meteo == aujourdhui):
-                    print(
-                        f"{date_str} | {pluie:4.1f} | {P_eff:4.1f} | {etp0:4.1f} | {Kc:3.1f} | {ETc:4.1f} | {rfu_actuelle_mm:8.1f} | {current_pct:7.1f}%")
+            if debug and (date_obj.day == 1 or date_obj.day == 15 or date_obj == aujourdhui):
+                print(f"{date_str} | {pluie:5.1f} | {P_eff:5.1f} | {etp0:4.1f} | {Kc:4.2f} | {ks:4.2f} | {ETc:4.1f} | {rfu_actuelle_mm:6.1f} | {current_pct:5.1f}%")
 
         if debug:
             print("-" * 70)
@@ -489,7 +512,8 @@ class ModeleBilanHydrique:
             'rfu_mm': round(rfu_actuelle_mm, 1),
             'rfu_max_mm': rfu_max_mm,
             'niveau': niveau,
-            'historique_pct': rfu_historique_pct
+            'historique_pct': rfu_historique_pct,
+            'ks_actuel': round(ks_actuel, 2)
         }
 
 
@@ -651,6 +675,7 @@ class GestionHistoriqueAlertes:
             'gdd_cumul': analyse_complete.get('gdd', {}).get('cumul'),
             'gdd_stade_estime': analyse_complete.get('gdd', {}).get('stade_estime'),
             'bilan_hydrique_pct': analyse_complete.get('bilan_hydrique', {}).get('rfu_pct'),
+            'bilan_hydrique_ks': analyse_complete.get('bilan_hydrique', {}).get('ks_actuel'),
             'risque_mildiou': {
                 'score': analyse_complete['risque_infection']['score'],
                 'niveau': analyse_complete['risque_infection']['niveau'],
@@ -1091,6 +1116,7 @@ class SystemeDecision:
         bilan_hydrique = self.modele_bilan_hydrique.calculer_bilan_rfu(
             self.meteo_historique, parcelle, stade_manuel,
             kc_calendrier, rfu_max_mm, f_runoff, i_const_mm,
+            gdd_cumul_actuel=gdd_actuel,
             debug=debug  # Passe le flag debug
         )
         # ======================================================================
@@ -1221,6 +1247,7 @@ class SystemeDecision:
         print(f"\n💧 BILAN HYDRIQUE: {bilan_h.get('niveau', 'N/A')}")
         print(
             f"   Réserve Utile (RFU) : {bilan_h.get('rfu_pct', 0)}% ({bilan_h.get('rfu_mm', 0)} / {bilan_h.get('rfu_max_mm', 0)} mm)")
+        print(f"   Indice de Stress (Ks) : {bilan_h.get('ks_actuel', 1.0)}")
 
         prot = analyse['protection_actuelle']
         print(f"\n🛡️  PROTECTION ACTUELLE: {prot['score']}/10")
