@@ -53,10 +53,9 @@ class DataManager:
                 tab_name = self._get_tab_name(key)
                 df = self.conn.read(worksheet=tab_name)
 
-                # Check if empty: no rows or only 'Unnamed' columns
+                # Check if empty
                 is_empty = df is None or len(df) == 0 or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
 
-                # Special check for 'vendanges' and others: if mandatory column like 'annee' or 'date' is missing, it's considered empty/invalid
                 if not is_empty and key in ['traitements', 'vendanges', 'historique_alertes', 'meteo_historique', 'gdd_historique']:
                     mandatory = {'traitements': 'parcelle', 'vendanges': 'annee', 'historique_alertes': 'annee', 'meteo_historique': 'date', 'gdd_historique': 'date'}
                     if mandatory[key] not in df.columns:
@@ -110,7 +109,7 @@ class DataManager:
         if val == val and val is not None: return bool(val)
         return False
 
-    def _get_num(self, val, default=None):
+    def _get_num(self, val, default=0.0):
         try:
             if val is None or val != val: return default
             return float(val)
@@ -163,14 +162,19 @@ class DataManager:
                 df = df.dropna(subset=['annee'])
                 for annee, group in df.groupby('annee'):
                     rows = group.to_dict(orient='records')
-                    tickets = [r for r in rows if r.get('type') == 'TICKET']
+                    tickets_rows = [r for r in rows if r.get('type') == 'TICKET']
                     params_rows = [r for r in rows if r.get('type') == 'CAMPAGNE']
 
                     clean_tickets = []
-                    for t in tickets:
-                        clean_t = {k: v for k, v in t.items() if v == v and v is not None}
-                        if 'type' in clean_t: del clean_t['type']
-                        if 'annee' in clean_t: del clean_t['annee']
+                    for t in tickets_rows:
+                        clean_t = {
+                            'date': t.get('date'),
+                            'num_ticket': t.get('num_ticket'),
+                            'poids_kg': self._get_num(t.get('poids_kg')),
+                            'degre': self._get_num(t.get('degre')),
+                            'notes': t.get('notes', ''),
+                            'id': self._get_num(t.get('id'))
+                        }
                         clean_tickets.append(clean_t)
 
                     campagne = {'annee': int(annee), 'tickets': clean_tickets}

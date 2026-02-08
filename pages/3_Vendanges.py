@@ -427,9 +427,9 @@ with tab1:
 
         if totaux:
             st.metric("Tickets", totaux['nb_tickets'])
-            st.metric("Poids Total", f"{totaux['poids_total']:,.0f} kg")
-            st.metric("Degré Moyen", f"{totaux['degre_moyen']:.1f}°")
-            st.metric("Hl° Estimé", f"{totaux['hl_estime']:.1f}")
+            st.metric("Poids Total", f"{totaux['poids_total'] or 0:,.0f} kg")
+            st.metric("Degré Moyen", f"{totaux['degre_moyen'] or 0:.1f}°")
+            st.metric("Hl° Estimé", f"{totaux['hl_estime'] or 0:.1f}")
         else:
             st.info("Aucun ticket saisi")
 
@@ -517,18 +517,18 @@ with tab2:
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.metric("🏋️ Poids Total", f"{totaux['poids_total']:,.0f} kg")
+                st.metric("🏋️ Poids Total", f"{totaux['poids_total'] or 0:,.0f} kg")
 
             with col2:
-                st.metric("🌡️ Degré Moyen", f"{totaux['degre_moyen']:.2f}°")
+                st.metric("🌡️ Degré Moyen", f"{totaux['degre_moyen'] or 0:.2f}°")
 
             with col3:
-                st.metric("🍷 Hl° Estimé", f"{totaux['hl_estime']:.1f}")
+                st.metric("🍷 Hl° Estimé", f"{totaux['hl_estime'] or 0:.1f}")
 
             with col4:
                 surf_campagne = campagne.get('surface_vendangee', {}).get('total_ha', surface_totale)
                 poids_ha = totaux['poids_total'] / surf_campagne if surf_campagne > 0 else 0
-                st.metric("📏 Poids/Ha", f"{poids_ha:,.0f} kg/ha")
+                st.metric("📏 Poids/Ha", f"{poids_ha or 0:,.0f} kg/ha")
 
             st.markdown("---")
 
@@ -612,16 +612,16 @@ with tab2:
                 ca_ha = ca_brut / surface_ha if surface_ha > 0 else 0
 
                 st.metric("Hl° (recalculé)", f"{hl_calc:.1f}")
-                st.metric("Production Litres", f"{production_litres:,.0f} L")
+                st.metric("Production Litres", f"{production_litres or 0:,.0f} L")
                 st.metric("Prime Totale", f"{prime_calc:,.2f} €")
-                st.metric("CA Brut", f"{ca_brut:,.0f} €")
-                st.metric("Frais Vinification", f"{frais_total:,.0f} €")
+                st.metric("CA Brut", f"{ca_brut or 0:,.0f} €")
+                st.metric("Frais Vinification", f"{frais_total or 0:,.0f} €")
                 st.metric("**Revenu Net**", f"**{revenu_net:,.0f} €**")
 
                 col_ind1, col_ind2 = st.columns(2)
                 with col_ind1:
-                    st.metric("CA/Ha", f"{ca_ha:,.0f} €/ha")
-                    st.metric("€/Litre", f"{euro_par_litre:.2f} €/L")
+                    st.metric("CA/Ha", f"{ca_ha or 0:,.0f} €/ha")
+                    st.metric("€/Litre", f"{euro_par_litre or 0:.2f} €/L")
                 with col_ind2:
                     st.metric("€/Hl", f"{euro_par_hl:.0f} €/Hl")
 
@@ -682,7 +682,7 @@ with tab2:
                 with col_v3:
                     poids_degre = totaux['poids_total'] * totaux['degre_moyen']
                     rdt_reel = (val['hl_reel'] * 100) / poids_degre * 100 if val['hl_reel'] and poids_degre else 0
-                    st.metric("Rendement Réel", f"{rdt_reel:.1f}%")
+                    st.metric("Rendement Réel", f"{rdt_reel or 0:.1f}%")
 
                 # Bouton dévalider
                 st.markdown("---")
@@ -921,17 +921,23 @@ with tab4:
                 if euro_hl_value > 1000:
                     euro_hl_value = euro_hl_value / 100
 
+                def fmt_num(val, format_str):
+                    try:
+                        if val is None or val != val: return "-"
+                        return format_str % float(val)
+                    except: return "-"
+
                 data_table.append({
                     'Année': c['annee'],
-                    'Poids (kg)': f"{hist.get('poids_kg', 0):,.0f}",
-                    'Hl°': f"{hist.get('hl', 0):.1f}",
-                    'CA Brut (€)': f"{hist.get('ca_brut', 0):,.0f}",
-                    'CA Net (€)': f"{hist.get('ca_net', 0):,.0f}",
-                    'Total Ha': f"{hist.get('total_ha', 0):.2f}",
-                    'CA/Ha (€)': f"{hist.get('ca_ha', 0):,.0f}",
-                    'Poids/Ha (t)': f"{hist.get('poids_ha', 0):.2f}",
-                    'Rdt Réel (%)': f"{hist.get('rendement_reel', 0):.1f}",
-                    '€/Hl': f"{euro_hl_value:.2f}",
+                    'Poids (kg)': f"{hist.get('poids_kg', 0) or 0:,.0f}",
+                    'Hl°': f"{hist.get('hl', 0) or 0:.1f}",
+                    'CA Brut (€)': f"{hist.get('ca_brut', 0) or 0:,.0f}",
+                    'CA Net (€)': f"{hist.get('ca_net', 0) or 0:,.0f}",
+                    'Total Ha': f"{hist.get('total_ha', 0) or 0:.2f}",
+                    'CA/Ha (€)': f"{hist.get('ca_ha', 0) or 0:,.0f}",
+                    'Poids/Ha (t)': f"{hist.get('poids_ha', 0) or 0:.2f}",
+                    'Rdt Réel (%)': f"{hist.get('rendement_reel', 0) or 0:.1f}",
+                    '€/Hl': f"{euro_hl_value or 0:.2f}",
                     'Status': '✅ Validé'
                 })
             else:
