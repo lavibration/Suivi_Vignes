@@ -1,0 +1,478 @@
+{
+  "campagnes": [
+    {
+      "annee": 2012,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": NaN,
+        "prix_u": 5.0962,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0663
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 923.61,
+        "prix_u_reel": 5.0962,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2012-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 9750.0,
+        "hl": 923.61,
+        "ca_brut": 4706.901282,
+        "ca_net": 3819.651282,
+        "total_ha": 2.045,
+        "ca_ha": 1867.8001378973104,
+        "euro_hl": 54.41098692307692,
+        "poids_ha": 4.767726161369193,
+        "rendement_reel": NaN
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2013,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": NaN,
+        "prix_u": 6.0136,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0782
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1726.1499999999999,
+        "prix_u_reel": 6.0136,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2013-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 18080.0,
+        "hl": 1726.15,
+        "ca_brut": 10380.37564,
+        "ca_net": 8950.24764,
+        "total_ha": 2.045,
+        "ca_ha": 4376.649212713936,
+        "euro_hl": 68.75497511061945,
+        "poids_ha": 8.841075794621027,
+        "rendement_reel": NaN
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2014,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": NaN,
+        "prix_u": 6.0136,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0782
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1599.29,
+        "prix_u_reel": 6.0136,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2014-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 18550.0,
+        "hl": 1599.29,
+        "ca_brut": 9617.490344,
+        "ca_net": 8150.185344,
+        "total_ha": 2.045,
+        "ca_ha": 3985.42070611247,
+        "euro_hl": 61.02265157232705,
+        "poids_ha": 9.070904645476773,
+        "rendement_reel": NaN
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2015,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": NaN,
+        "prix_u": 6.0136,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0782
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1726.75,
+        "prix_u_reel": 6.0136,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2015-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 20470.0,
+        "hl": 1726.75,
+        "ca_brut": 10383.9838,
+        "ca_net": 8764.8068,
+        "total_ha": 2.045,
+        "ca_ha": 4285.969095354523,
+        "euro_hl": 59.4691879715573,
+        "poids_ha": 10.009779951100246,
+        "rendement_reel": NaN
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2016,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7202770764254528,
+        "prix_u": 5.5608,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.07
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 2684.94,
+        "prix_u_reel": 5.5608,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2016-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 29460.0,
+        "hl": 2684.94,
+        "ca_brut": 14930.414352000002,
+        "ca_net": 12358.556352,
+        "total_ha": 2.045,
+        "ca_ha": 6043.303839608802,
+        "euro_hl": 58.24188286579655,
+        "poids_ha": 14.405867970660147,
+        "rendement_reel": 0.7202770764254528
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2017,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7282275231655397,
+        "prix_u": 6.9156,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0899
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 465.24999999999994,
+        "prix_u_reel": 6.9156,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2017-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 5280.0,
+        "hl": 465.25,
+        "ca_brut": 3217.4829,
+        "ca_net": 2861.6109,
+        "total_ha": 0.825,
+        "ca_ha": 3468.6192727272733,
+        "euro_hl": 74.42341083288554,
+        "poids_ha": 6.4,
+        "rendement_reel": 0.7282275231655397
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2018,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7465069860279441,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.085
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 456.28,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2018-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 5010.0,
+        "hl": 456.28,
+        "ca_brut": 2867.1266359999995,
+        "ca_net": 2504.9036359999996,
+        "total_ha": 0.825,
+        "ca_ha": 3036.246831515151,
+        "euro_hl": 66.97603304812833,
+        "poids_ha": 6.072727272727273,
+        "rendement_reel": 0.7465069860279441
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2019,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7145680560477605,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 524.25,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2019-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 5990.0,
+        "hl": 524.25,
+        "ca_brut": 3294.2297249999997,
+        "ca_net": 2859.355725,
+        "total_ha": 0.825,
+        "ca_ha": 3465.8857272727273,
+        "euro_hl": 66.80327715811521,
+        "poids_ha": 7.260606060606061,
+        "rendement_reel": 0.7145680560477605
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2020,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7173961840628507,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 415.48,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2020-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 4290.0,
+        "hl": 415.48,
+        "ca_brut": 2610.751676,
+        "ca_net": 2299.2976759999997,
+        "total_ha": 1.386,
+        "ca_ha": 1658.944932178932,
+        "euro_hl": 74.71001883604505,
+        "poids_ha": 3.0952380952380953,
+        "rendement_reel": 0.7173961840628507
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2021,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.768045569147446,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 657.9999999999999,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2021-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 6670.0,
+        "hl": 658.0,
+        "ca_brut": 4134.674599999999,
+        "ca_net": 3650.432599999999,
+        "total_ha": 1.386,
+        "ca_ha": 2633.7897546897543,
+        "euro_hl": 71.2576527178356,
+        "poids_ha": 4.812409812409813,
+        "rendement_reel": 0.768045569147446
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2022,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7477999999999999,
+        "prix_u": 6.143244588763828,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1600.92763,
+        "prix_u_reel": 6.143244588763828,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2022-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 18220.0,
+        "hl": 1600.92763,
+        "ca_brut": 9834.89,
+        "ca_net": 8512.118,
+        "total_ha": 2.606,
+        "ca_ha": 3266.353798925557,
+        "euro_hl": 62.474645715247,
+        "poids_ha": 6.991557943207982,
+        "rendement_reel": 0.7477999999999999
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2023,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.750068705888133,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 977.08,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2023-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 10910.0,
+        "hl": 977.08,
+        "ca_brut": 6139.6775959999995,
+        "ca_net": 5347.611596,
+        "total_ha": 1.386,
+        "ca_ha": 3858.305624819625,
+        "euro_hl": 65.34826468276907,
+        "poids_ha": 7.871572871572872,
+        "rendement_reel": 0.750068705888133
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2024,
+      "status": "validee",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 0.7332213772017622,
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1660.0,
+        "prix_u_reel": 6.2837,
+        "frais_reels": null,
+        "prime_reelle": 0.0,
+        "date_validation": "2024-12-31"
+      },
+      "donnees_historiques": {
+        "poids_kg": 18170.0,
+        "hl": 1660.0,
+        "ca_brut": 10430.942,
+        "ca_net": 9111.8,
+        "total_ha": 2.045,
+        "ca_ha": 4455.647921760391,
+        "euro_hl": 68.39339036144578,
+        "poids_ha": 8.885085574572127,
+        "rendement_reel": 0.7332213772017622
+      },
+      "parcelles_vendangees": []
+    },
+    {
+      "annee": 2025,
+      "status": "validee",
+      "tickets": [
+        {
+          "date": "2025-11-08",
+          "num_ticket": "T20251108",
+          "poids_kg": 18000,
+          "degre": 12.499999999999998,
+          "notes": "",
+          "id": 1
+        }
+      ],
+      "parametres": {
+        "rendement_theorique": 73.0,
+        "prix_u": 6.78,
+        "frais_vinif_u": 0.16,
+        "prime_u": 0.08
+      },
+      "surface_vendangee": {
+        "total_ha": 2.05,
+        "notes": ""
+      },
+      "validation": {
+        "validee": true,
+        "hl_reel": 1642.4999999999998,
+        "prix_u_reel": 6.78,
+        "frais_reels": 2880.0,
+        "prime_reelle": 1440.0,
+        "date_validation": "2025-11-08"
+      },
+      "parcelles_vendangees": [],
+      "donnees_historiques": {
+        "poids_kg": 18000,
+        "hl": 1642.4999999999998,
+        "degre_moyen": 12.499999999999998,
+        "ca_brut": 12576.15,
+        "ca_net": 9696.15,
+        "total_ha": 2.05,
+        "ca_ha": 6134.707317073171,
+        "euro_hl": 7379.109589041095,
+        "poids_ha": 8.78048780487805,
+        "rendement_reel": 0.73,
+        "prime_totale": 1440.0,
+        "frais_totaux": 2880.0
+      }
+    },
+    {
+      "annee": 2026,
+      "status": "en_cours",
+      "tickets": [],
+      "parametres": {
+        "rendement_theorique": 73.0,
+        "prix_u": 100.0,
+        "frais_vinif_u": 15.73,
+        "prime_u": 0.0
+      },
+      "surface_vendangee": {
+        "total_ha": 2.05,
+        "notes": ""
+      },
+      "validation": {
+        "validee": false,
+        "hl_reel": null,
+        "prix_u_reel": null,
+        "frais_reels": null,
+        "prime_reelle": null,
+        "date_validation": null
+      },
+      "parcelles_vendangees": []
+    }
+  ]
+}

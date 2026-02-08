@@ -1,0 +1,43 @@
+{
+  "traitements": [
+    {
+      "parcelle": "Cabernet Graviers",
+      "date": "2025-11-10",
+      "produit": "bouillie_bordelaise",
+      "dose_kg_ha": 2.1,
+      "caracteristiques": {
+        "nom": "Bouillie bordelaise",
+        "persistance_jours": 10,
+        "lessivage_seuil_mm": 30,
+        "type": "contact",
+        "dose_reference_kg_ha": 2.0
+      }
+    },
+    {
+      "parcelle": "Cabernet Graviers",
+      "date": "2025-09-19",
+      "produit": "bouillie_bordelaise",
+      "dose_kg_ha": 2.1,
+      "caracteristiques": {
+        "nom": "Bouillie bordelaise",
+        "persistance_jours": 10,
+        "lessivage_seuil_mm": 30,
+        "type": "contact",
+        "dose_reference_kg_ha": 2.0
+      }
+    },
+    {
+      "parcelle": "Fate",
+      "date": "2025-11-08",
+      "produit": "bouillie_bordelaise",
+      "dose_kg_ha": 2.0,
+      "caracteristiques": {
+        "nom": "Bouillie bordelaise",
+        "persistance_jours": 10,
+        "lessivage_seuil_mm": 30,
+        "type": "contact",
+        "dose_reference_kg_ha": 2.0
+      }
+    }
+  ]
+}
