@@ -1,0 +1,63 @@
+{
+  "latitude": 43.29751,
+  "longitude": 5.62843,
+  "localisation": "Gémenos, Provence-Alpes-Côte d'Azur, France",
+  "parametres": {
+    "t_base_gdd": 10.0,
+    "f_runoff": 0.1,
+    "i_const_mm": 1.0,
+    "kc_calendrier": {
+      "1": 0.1,
+      "2": 0.1,
+      "3": 0.2,
+      "4": 0.4,
+      "5": 0.7,
+      "6": 0.8,
+      "7": 0.8,
+      "8": 0.7,
+      "9": 0.6,
+      "10": 0.4,
+      "11": 0.2,
+      "12": 0.1
+    }
+  },
+  "parcelles": [
+    {
+      "nom": "Cabernet Graviers",
+      "surface_ha": 0.69,
+      "cepages": ["Cabernet Sauvignon"],
+      "stade_actuel": "repos",
+      "exposition": "Sud",
+      "notes": "Terrain gravillons + sec"
+    },
+    {
+      "nom": "Caladoc Graviers",
+      "surface_ha": 0.202,
+      "cepages": ["Caladoc"],
+      "stade_actuel": "repos",
+      "exposition": "Sud",
+      "notes": ".."
+    },
+    {
+      "nom": "Les Ponts",
+      "surface_ha": 0.561,
+      "cepages": ["Caladoc"],
+      "stade_actuel": "repos",
+      "exposition": "Sud",
+      "notes": ".."
+    },
+    {
+      "nom": "Fate",
+      "surface_ha": 1.277,
+      "cepages": ["Grenache"],
+      "stade_actuel": "repos",
+      "exposition": "Sud",
+      "notes": "Jeunes vignes, humide et sensible"
+    }
+  ],
+  "parametres": {
+    "seuil_alerte_pluie": 15,
+    "activer_notifications": true,
+    "email_notification": "mathieu.spielmann@gmail.com"
+  }
+}
