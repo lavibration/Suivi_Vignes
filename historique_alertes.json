@@ -1,0 +1,1268 @@
+{
+  "campagnes": [
+    {
+      "annee": 2025,
+      "analyses": [
+        {
+          "date": "2025-11-09",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.5,
+            "precipitation": 0.0,
+            "humidite": 82
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-09",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.5,
+            "precipitation": 0.0,
+            "humidite": 82
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-09",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.5,
+            "precipitation": 0.0,
+            "humidite": 82
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-09",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.5,
+            "precipitation": 0.0,
+            "humidite": 82
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-10",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 10.0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -10.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.55,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-10",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.55,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-10",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.55,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-10",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "risque": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "protection": {
+            "score": 8.0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -8.0,
+            "action": "Pas de traitement nécessaire",
+            "urgence": "faible"
+          },
+          "meteo": {
+            "temp_moy": 11.55,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-11",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 9.0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -9.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours."
+          },
+          "meteo": {
+            "temp_moy": 11.65,
+            "precipitation": 0.0,
+            "humidite": 77
+          },
+          "previsions": {
+            "pluie_3j": 3.0
+          }
+        },
+        {
+          "date": "2025-11-11",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours."
+          },
+          "meteo": {
+            "temp_moy": 11.65,
+            "precipitation": 0.0,
+            "humidite": 77
+          },
+          "previsions": {
+            "pluie_3j": 3.0
+          }
+        },
+        {
+          "date": "2025-11-11",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours."
+          },
+          "meteo": {
+            "temp_moy": 11.65,
+            "precipitation": 0.0,
+            "humidite": 77
+          },
+          "previsions": {
+            "pluie_3j": 3.0
+          }
+        },
+        {
+          "date": "2025-11-11",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 7.0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -7.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours."
+          },
+          "meteo": {
+            "temp_moy": 11.65,
+            "precipitation": 0.0,
+            "humidite": 77
+          },
+          "previsions": {
+            "pluie_3j": 3.0
+          }
+        },
+        {
+          "date": "2025-11-12",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 93.4,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 8.0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -8.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours.",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 14.1,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 10.0
+          }
+        },
+        {
+          "date": "2025-11-12",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 93.4,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours.",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 14.1,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 10.0
+          }
+        },
+        {
+          "date": "2025-11-12",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 93.4,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours.",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 14.1,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 10.0
+          }
+        },
+        {
+          "date": "2025-11-12",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 93.4,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 6.0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -6.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "debourrement non atteint dans les 7 prochains jours.",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 14.1,
+            "precipitation": 0.0,
+            "humidite": 83
+          },
+          "previsions": {
+            "pluie_3j": 10.0
+          }
+        },
+        {
+          "date": "2025-11-14",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 89.1,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 6.0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -6.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 18.35,
+            "precipitation": 1.3,
+            "humidite": 63
+          },
+          "previsions": {
+            "pluie_3j": 28.3
+          }
+        },
+        {
+          "date": "2025-11-14",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 89.1,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 18.35,
+            "precipitation": 1.3,
+            "humidite": 63
+          },
+          "previsions": {
+            "pluie_3j": 28.3
+          }
+        },
+        {
+          "date": "2025-11-14",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 89.1,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 18.35,
+            "precipitation": 1.3,
+            "humidite": 63
+          },
+          "previsions": {
+            "pluie_3j": 28.3
+          }
+        },
+        {
+          "date": "2025-11-14",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 89.1,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 4.0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -4.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 18.35,
+            "precipitation": 1.3,
+            "humidite": 63
+          },
+          "previsions": {
+            "pluie_3j": 28.3
+          }
+        },
+        {
+          "date": "2025-11-16",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 4.0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -4.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-16",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-16",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date": "2025-11-16",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 2.0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Persistance"
+          },
+          "decision": {
+            "score": -2.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92
+          },
+          "previsions": {
+            "pluie_3j": 0.0
+          }
+        },
+        {
+          "date_analyse": "2025-11-16",
+          "parcelle": "Cabernet Graviers",
+          "stade_actuel": "repos",
+          "risque_infection": {
+            "score": 7.0,
+            "niveau": "FORT",
+            "ipi": 88
+          },
+          "risque_oidium": {
+            "score": 2.5,
+            "niveau": "FAIBLE"
+          },
+          "protection_actuelle": {
+            "score": 10.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Inconnu"
+          },
+          "decision": {
+            "score": 5,
+            "action": "N/A",
+            "urgence": "faible",
+            "alerte_oidium": "FAIBLE"
+          },
+          "bilan_hydrique": {
+            "rfu_pct": 100.0,
+            "rfu_mm": 100.0,
+            "rfu_max_mm": 100.0,
+            "niveau": "Dormance",
+            "historique_pct": {
+              "2025-08-14": 99.3,
+              "2025-08-15": 98.6,
+              "2025-08-16": 97.9,
+              "2025-08-17": 97.2,
+              "2025-08-18": 96.5,
+              "2025-08-19": 95.8,
+              "2025-08-20": 95.1,
+              "2025-08-21": 94.4,
+              "2025-08-22": 93.7,
+              "2025-08-23": 93.0,
+              "2025-08-24": 92.3,
+              "2025-08-25": 91.6,
+              "2025-08-26": 90.9,
+              "2025-08-27": 90.2,
+              "2025-08-28": 89.5,
+              "2025-08-29": 88.8,
+              "2025-08-30": 88.1,
+              "2025-08-31": 87.4,
+              "2025-09-01": 86.8,
+              "2025-09-02": 86.2,
+              "2025-09-03": 83.2,
+              "2025-09-04": 100.0,
+              "2025-09-05": 96.8,
+              "2025-09-06": 94.4,
+              "2025-09-07": 91.8,
+              "2025-09-08": 89.7,
+              "2025-09-09": 87.5,
+              "2025-09-10": 85.0,
+              "2025-09-11": 81.8,
+              "2025-09-12": 79.0,
+              "2025-09-13": 81.4,
+              "2025-09-14": 79.0,
+              "2025-09-15": 76.5,
+              "2025-09-16": 73.5,
+              "2025-09-17": 70.3,
+              "2025-09-18": 67.9,
+              "2025-09-19": 65.5,
+              "2025-09-20": 62.6,
+              "2025-09-21": 100.0,
+              "2025-09-22": 100.0,
+              "2025-09-23": 98.2,
+              "2025-09-24": 96.5,
+              "2025-09-25": 94.7,
+              "2025-09-26": 93.2,
+              "2025-09-27": 91.4,
+              "2025-09-28": 90.0,
+              "2025-09-29": 88.2,
+              "2025-09-30": 86.3,
+              "2025-10-01": 85.3,
+              "2025-10-02": 85.4,
+              "2025-10-03": 84.3,
+              "2025-10-04": 83.2,
+              "2025-10-05": 81.2,
+              "2025-10-06": 79.8,
+              "2025-10-07": 78.6,
+              "2025-10-08": 77.7,
+              "2025-10-09": 77.1,
+              "2025-10-10": 75.9,
+              "2025-10-11": 74.8,
+              "2025-10-12": 73.7,
+              "2025-10-13": 72.7,
+              "2025-10-14": 71.9,
+              "2025-10-15": 71.1,
+              "2025-10-16": 70.2,
+              "2025-10-17": 69.4,
+              "2025-10-18": 68.5,
+              "2025-10-19": 68.5,
+              "2025-10-20": 100.0,
+              "2025-10-21": 99.4,
+              "2025-10-22": 100.0,
+              "2025-10-23": 99.1,
+              "2025-10-24": 98.2,
+              "2025-10-25": 97.4,
+              "2025-10-26": 96.2,
+              "2025-10-27": 94.9,
+              "2025-10-28": 94.0,
+              "2025-10-29": 100.0,
+              "2025-10-30": 100.0,
+              "2025-10-31": 99.3,
+              "2025-11-01": 100.0,
+              "2025-11-02": 100.0,
+              "2025-11-03": 99.6,
+              "2025-11-04": 99.2,
+              "2025-11-05": 98.8,
+              "2025-11-06": 100.0,
+              "2025-11-07": 100.0,
+              "2025-11-08": 99.7,
+              "2025-11-09": 99.5,
+              "2025-11-10": 99.2,
+              "2025-11-11": 98.9,
+              "2025-11-12": 98.7,
+              "2025-11-13": 98.3,
+              "2025-11-14": 98.2,
+              "2025-11-15": 98.4,
+              "2025-11-16": 100.0
+            }
+          },
+          "meteo_actuelle": {
+            "temp_max": 17.4,
+            "temp_min": 13.6,
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92,
+            "etp": 0.59,
+            "gdd_jour": 5.5,
+            "etp0": 0.59
+          },
+          "previsions_3j": {}
+        },
+        {
+          "date_analyse": "2025-11-16",
+          "parcelle": "Cabernet Graviers",
+          "stade_actuel": "repos",
+          "risque_infection": {
+            "score": 7.0,
+            "niveau": "FORT",
+            "ipi": 88
+          },
+          "risque_oidium": {
+            "score": 2.5,
+            "niveau": "FAIBLE"
+          },
+          "protection_actuelle": {
+            "score": 10.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Inconnu"
+          },
+          "decision": {
+            "score": 5,
+            "action": "N/A",
+            "urgence": "faible",
+            "alerte_oidium": "FAIBLE"
+          },
+          "bilan_hydrique": {
+            "rfu_pct": 100.0,
+            "rfu_mm": 100.0,
+            "rfu_max_mm": 100.0,
+            "niveau": "Dormance",
+            "historique_pct": {
+              "2025-08-14": 99.3,
+              "2025-08-15": 98.6,
+              "2025-08-16": 97.9,
+              "2025-08-17": 97.2,
+              "2025-08-18": 96.5,
+              "2025-08-19": 95.8,
+              "2025-08-20": 95.1,
+              "2025-08-21": 94.4,
+              "2025-08-22": 93.7,
+              "2025-08-23": 93.0,
+              "2025-08-24": 92.3,
+              "2025-08-25": 91.6,
+              "2025-08-26": 90.9,
+              "2025-08-27": 90.2,
+              "2025-08-28": 89.5,
+              "2025-08-29": 88.8,
+              "2025-08-30": 88.1,
+              "2025-08-31": 87.4,
+              "2025-09-01": 86.8,
+              "2025-09-02": 86.2,
+              "2025-09-03": 83.2,
+              "2025-09-04": 100.0,
+              "2025-09-05": 96.8,
+              "2025-09-06": 94.4,
+              "2025-09-07": 91.8,
+              "2025-09-08": 89.7,
+              "2025-09-09": 87.5,
+              "2025-09-10": 85.0,
+              "2025-09-11": 81.8,
+              "2025-09-12": 79.0,
+              "2025-09-13": 81.4,
+              "2025-09-14": 79.0,
+              "2025-09-15": 76.5,
+              "2025-09-16": 73.5,
+              "2025-09-17": 70.3,
+              "2025-09-18": 67.9,
+              "2025-09-19": 65.5,
+              "2025-09-20": 62.6,
+              "2025-09-21": 100.0,
+              "2025-09-22": 100.0,
+              "2025-09-23": 98.2,
+              "2025-09-24": 96.5,
+              "2025-09-25": 94.7,
+              "2025-09-26": 93.2,
+              "2025-09-27": 91.4,
+              "2025-09-28": 90.0,
+              "2025-09-29": 88.2,
+              "2025-09-30": 86.3,
+              "2025-10-01": 85.3,
+              "2025-10-02": 85.4,
+              "2025-10-03": 84.3,
+              "2025-10-04": 83.2,
+              "2025-10-05": 81.2,
+              "2025-10-06": 79.8,
+              "2025-10-07": 78.6,
+              "2025-10-08": 77.7,
+              "2025-10-09": 77.1,
+              "2025-10-10": 75.9,
+              "2025-10-11": 74.8,
+              "2025-10-12": 73.7,
+              "2025-10-13": 72.7,
+              "2025-10-14": 71.9,
+              "2025-10-15": 71.1,
+              "2025-10-16": 70.2,
+              "2025-10-17": 69.4,
+              "2025-10-18": 68.5,
+              "2025-10-19": 68.5,
+              "2025-10-20": 100.0,
+              "2025-10-21": 99.4,
+              "2025-10-22": 100.0,
+              "2025-10-23": 99.1,
+              "2025-10-24": 98.2,
+              "2025-10-25": 97.4,
+              "2025-10-26": 96.2,
+              "2025-10-27": 94.9,
+              "2025-10-28": 94.0,
+              "2025-10-29": 100.0,
+              "2025-10-30": 100.0,
+              "2025-10-31": 99.3,
+              "2025-11-01": 100.0,
+              "2025-11-02": 100.0,
+              "2025-11-03": 99.6,
+              "2025-11-04": 99.2,
+              "2025-11-05": 98.8,
+              "2025-11-06": 100.0,
+              "2025-11-07": 100.0,
+              "2025-11-08": 99.7,
+              "2025-11-09": 99.5,
+              "2025-11-10": 99.2,
+              "2025-11-11": 98.9,
+              "2025-11-12": 98.7,
+              "2025-11-13": 98.3,
+              "2025-11-14": 98.2,
+              "2025-11-15": 98.4,
+              "2025-11-16": 100.0
+            }
+          },
+          "meteo_actuelle": {
+            "temp_max": 17.4,
+            "temp_min": 13.6,
+            "temp_moy": 15.5,
+            "precipitation": 11.3,
+            "humidite": 92,
+            "etp": 0.59,
+            "gdd_jour": 5.5,
+            "etp0": 0.59
+          },
+          "previsions_3j": {}
+        }
+      ]
+    },
+    {
+      "annee": 2026,
+      "analyses": [
+        {
+          "date": "2026-02-08",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Lessivage (390.2mm)"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 8.75,
+            "precipitation": 3.3,
+            "humidite": 81
+          },
+          "previsions": {
+            "pluie_3j": 11.6
+          }
+        },
+        {
+          "date": "2026-02-08",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 8.75,
+            "precipitation": 3.3,
+            "humidite": 81
+          },
+          "previsions": {
+            "pluie_3j": 11.6
+          }
+        },
+        {
+          "date": "2026-02-08",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 8.75,
+            "precipitation": 3.3,
+            "humidite": 81
+          },
+          "previsions": {
+            "pluie_3j": 11.6
+          }
+        },
+        {
+          "date": "2026-02-08",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Lessivage (390.2mm)"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "Dormance"
+          },
+          "meteo": {
+            "temp_moy": 8.75,
+            "precipitation": 3.3,
+            "humidite": 81
+          },
+          "previsions": {
+            "pluie_3j": 11.6
+          }
+        }
+      ]
+    }
+  ]
+}
