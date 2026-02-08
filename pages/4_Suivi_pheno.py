@@ -147,7 +147,26 @@ def load_and_prepare_data():
         return None, None, None
 
 
+def mask_s2_clouds(image):
+    """Masquage des nuages via la bande QA60 et mise à l'échelle des réflectances."""
+    qa = image.select('QA60')
+
+    # Les bits 10 et 11 correspondent respectivement aux nuages et aux cirrus.
+    cloud_bit_mask = 1 << 10
+    cirrus_bit_mask = 1 << 11
+
+    # Les deux drapeaux doivent être à zéro pour indiquer des conditions claires.
+    mask = qa.bitwiseAnd(cloud_bit_mask).eq(0).And(
+        qa.bitwiseAnd(cirrus_bit_mask).eq(0)
+    )
+
+    # Appliquer le masque et diviser par 10000 pour obtenir des réflectances entre 0 et 1
+    # On ne divise que les bandes de réflectance (B1 à B12)
+    return image.updateMask(mask).divide(10000).copyProperties(image, ["system:time_start", "date"])
+
+
 def add_indices(image):
+    """Calcul des indices NDVI et NDMI."""
     ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
     ndmi = image.normalizedDifference(["B8A", "B11"]).rename("NDMI")
     return image.addBands([ndvi, ndmi]).set("date", image.date().format("YYYY-MM-dd"))
@@ -196,12 +215,14 @@ if st.button("🚀 Lancer l'Analyse Satellite (Sentinel-2)", type="primary"):
     with st.spinner("⏳ Récupération et traitement des images Sentinel-2..."):
 
         try:
+            # Calcul de la date de fin inclusive (+1 jour)
+            end_date_plus_1 = end_date + datetime.timedelta(days=1)
+
             s2 = (
                 ee.ImageCollection("COPERNICUS/S2_SR")
                 .filterBounds(geom_envelope)
-                .filterDate(str(start_date), str(end_date))
-                .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 15))
-                .select(["B4", "B8", "B11", "B8A"])
+                .filterDate(str(start_date), str(end_date_plus_1))
+                .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 80))
                 .sort("system:time_start")
             )
 
@@ -210,7 +231,8 @@ if st.button("🚀 Lancer l'Analyse Satellite (Sentinel-2)", type="primary"):
                 st.session_state['analyse_lancee'] = False
                 st.stop()
 
-            s2_indices = s2.map(add_indices)
+            # Application du masque de nuages et calcul des indices
+            s2_indices = s2.map(mask_s2_clouds).map(add_indices)
 
             results_dict = s2_indices.map(
                 lambda img: get_mean_value_zonal(img, ee_feature_collection)
@@ -332,11 +354,15 @@ if st.session_state.get('analyse_complete', False) and 'df_series' in st.session
         run_start_date = st.session_state.get('start_date_sat_run', start_date)
         run_end_date = st.session_state.get('end_date_sat_run', end_date)
 
+        # Calcul de la date de fin inclusive (+1 jour)
+        run_end_date_plus_1 = run_end_date + datetime.timedelta(days=1)
+
         s2_collection = (
             ee.ImageCollection("COPERNICUS/S2_SR")
             .filterBounds(geom_envelope)
-            .filterDate(str(run_start_date), str(run_end_date))
-            .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 15))
+            .filterDate(str(run_start_date), str(run_end_date_plus_1))
+            .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 80))
+            .map(mask_s2_clouds)
             .map(add_indices)
         )
 
