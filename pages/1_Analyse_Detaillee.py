@@ -223,6 +223,11 @@ try:
                     delta=bilan_h['niveau'],
                     delta_color="off"
                 )
+                st.metric(
+                    "📉 Indice Stress (Ks)",
+                    f"{bilan_h.get('ks_actuel', 1.0):.2f}",
+                    help="1.0 = pas de stress, < 1.0 = régulation stomatique"
+                )
                 # ------------------------------
 
             with col_m3:
@@ -266,7 +271,9 @@ try:
 
             message_mildiou = decision['action']
             message_oidium = decision['alerte_oidium'] if decision['alerte_oidium'] else "Risque faible"
-            message_hydrique = f"RFU à {bilan_h['rfu_pct']}% ({bilan_h['niveau']})"
+            ks_val = bilan_h.get('ks_actuel', 1.0)
+            ks_msg = f" (Ks: {ks_val:.2f})" if ks_val < 1.0 else ""
+            message_hydrique = f"RFU à {bilan_h['rfu_pct']}% ({bilan_h['niveau']}){ks_msg}"
 
             alert_class = get_alert_class(urgence_globale_str)
             urgence_icon = get_urgence_color(urgence_globale_str)
@@ -399,11 +406,14 @@ try:
                 st.markdown("### 💧 Modèle Bilan Hydrique")
                 st.markdown(f"""
                 **RFU Max (Réglage) :** {bilan_h['rfu_max_mm']} mm
-                **Calcul (simplifié) :**
-                - `RFU_jour = RFU_veille + Pluie_jour - ETP_jour`
+                **Calcul Agronomique (FAO-56) :**
+                - `Kc` dynamique indexé sur les GDD (vigueur foliaire).
+                - `Ks` (Stress) : régulation si RFU < 50%.
+                - `ETc = ET0 x Kc x Ks`
                 - Plafonnée entre 0 et {bilan_h['rfu_max_mm']} mm.
                 - **ETP :** *et0_fao_evapotranspiration* (Penman-Monteith)
                 **Résultat :** {bilan_h['rfu_pct']}% ({bilan_h['niveau']})
+                **Indice de stress actuel (Ks) :** {bilan_h.get('ks_actuel', 1.0):.2f}
                 """)
                 # ------------------------------------
 
