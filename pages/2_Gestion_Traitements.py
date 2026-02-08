@@ -106,12 +106,12 @@ try:
                     min_value=0.0,
                     max_value=100.0,
                     value=100.0,
-                    help="Pourcentage de produit pur pour un volume de bouillie",
+                    help="Pourcentage de produit pur pour un volume de bouillie (Hurricane dose standard 0.1%)",
                     key="mouillage"
                 )
                 type_u = st.selectbox(
                     "🚜 Type d'utilisation *",
-                    ["Plein champ", "Localisé", "Aérien", "Rang par rang"],
+                    ["Pulvérisation", "Aérien", "Localisé"],
                     key="type_u"
                 )
 
