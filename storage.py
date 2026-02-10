@@ -112,6 +112,9 @@ class DataManager:
     def _get_num(self, val, default=0.0):
         try:
             if val is None or val != val: return default
+            if isinstance(val, str):
+                # Gérer les décimales à la française (virgule)
+                val = val.replace(',', '.')
             return float(val)
         except: return default
 
