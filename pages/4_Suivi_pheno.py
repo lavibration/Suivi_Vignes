@@ -148,20 +148,15 @@ def load_and_prepare_data():
 
 
 def mask_s2_clouds(image):
-    """Masquage des nuages via la bande QA60 et mise à l'échelle des réflectances."""
-    qa = image.select('QA60')
+    """Masquage des nuages via la bande SCL (Scene Classification Layer) et mise à l'échelle."""
+    # SCL est la bande de classification de scène fournie avec Sentinel-2 L2A.
+    scl = image.select('SCL')
 
-    # Les bits 10 et 11 correspondent respectivement aux nuages et aux cirrus.
-    cloud_bit_mask = 1 << 10
-    cirrus_bit_mask = 1 << 11
+    # On garde les pixels de type : 4 (végétation), 5 (sols nus), 6 (eau), 7 (non classé).
+    # On exclut : 3 (ombres), 8-9-10 (nuages), 11 (neige).
+    mask = scl.gte(4).And(scl.lte(7))
 
-    # Les deux drapeaux doivent être à zéro pour indiquer des conditions claires.
-    mask = qa.bitwiseAnd(cloud_bit_mask).eq(0).And(
-        qa.bitwiseAnd(cirrus_bit_mask).eq(0)
-    )
-
-    # Appliquer le masque et diviser par 10000 pour obtenir des réflectances entre 0 et 1
-    # On ne divise que les bandes de réflectance (B1 à B12)
+    # Appliquer le masque et diviser par 10000 pour obtenir des réflectances entre 0 et 1.
     return image.updateMask(mask).divide(10000).copyProperties(image, ["system:time_start", "date"])
 
 
