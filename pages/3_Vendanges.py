@@ -10,6 +10,8 @@ import os
 from datetime import datetime, date
 import pandas as pd
 import json
+import plotly.express as px
+import plotly.graph_objects as go
 from storage import DataManager
 import traceback
 
@@ -294,15 +296,15 @@ class GestionVendanges:
                     'date_validation': f"{annee}-12-31"
                 },
                 'donnees_historiques': {
-                    'poids_kg': float(row.get('Poids Kg', 0)),
-                    'hl': float(row.get('H°', 0)) if 'H°' in row else None,
-                    'ca_brut': float(row.get('Revenus €', 0)),
-                    'ca_net': float(row.get('Chiffre Affaire Net €', 0)),
-                    'total_ha': float(row.get('Total Ha', 0)),
-                    'ca_ha': float(row.get('CA / Ha (€)', 0)),
-                    'euro_hl': float(row.get('€/hl (72% rdt)', 0)),
-                    'poids_ha': float(row.get('Poids/Ha', 0)),
-                    'rendement_reel': float(row.get('rendement jus', 73))
+                    'poids_kg': self.storage._get_num(row.get('Poids Kg', 0)),
+                    'hl': self.storage._get_num(row.get('H°', 0)) if 'H°' in row else None,
+                    'ca_brut': self.storage._get_num(row.get('Revenus €', row.get('ca_brut_hist', 0))),
+                    'ca_net': self.storage._get_num(row.get('Chiffre Affaire Net €', row.get('ca_net_hist', 0))),
+                    'total_ha': self.storage._get_num(row.get('total_ha_hist', row.get('Total Ha', 0))),
+                    'ca_ha': self.storage._get_num(row.get('CA / Ha (€)', 0)),
+                    'euro_hl': self.storage._get_num(row.get('€/hl (72% rdt)', row.get('euro_hl_hist', 0))),
+                    'poids_ha': self.storage._get_num(row.get('Poids/Ha', 0)),
+                    'rendement_reel': self.storage._get_num(row.get('rendement jus', 73))
                 },
                 'parcelles_vendangees': []
             }
@@ -747,12 +749,13 @@ with tab2:
 # TAB 3 : DASHBOARD GRAPHIQUES
 # ========================================
 with tab3:
-    st.subheader("📈 Dashboard Historique")
-
-    # Bouton rafraîchir
-    if st.button("🔄 Actualiser Dashboard"):
-        st.cache_data.clear()
-        st.rerun()
+    col_title, col_refresh = st.columns([3, 1])
+    with col_title:
+        st.subheader("📈 Dashboard Historique")
+    with col_refresh:
+        if st.button("🔄 Actualiser Dashboard", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
 
     campagnes = [c for c in vendanges.donnees['campagnes'] if c.get('donnees_historiques')]
 
@@ -765,61 +768,108 @@ with tab3:
 
             # CORRECTION : Si euro_hl semble être 100x trop grand (ancienne version), on corrige
             euro_hl_value = hist.get('euro_hl', 0)
-            if euro_hl_value > 1000:  # Si > 1000, c'est probablement une erreur (devrait être < 200)
+            if euro_hl_value > 1000:
                 euro_hl_value = euro_hl_value / 100
+
+            # Calculs consolidés
+            ca_net = hist.get('ca_net', 0)
+            total_ha = hist.get('total_ha', surface_totale)
+            if total_ha == 0: total_ha = surface_totale
+
+            # CA/Ha calculé dynamiquement pour éviter les zéros du GSheet
+            ca_ha_calc = ca_net / total_ha if total_ha > 0 else 0
+
+            # Rendement : s'assurer qu'il est en % (parfois stocké en ratio 0.73 au lieu de 73)
+            rdt_reel = hist.get('rendement_reel')
+            if rdt_reel is None:
+                rdt_reel = 0.0
+
+            if 0 < rdt_reel < 2:
+                rdt_reel = rdt_reel * 100
 
             data.append({
                 'Année': c['annee'],
                 'Poids_kg': hist.get('poids_kg', 0),
-                'Total_Ha': hist.get('total_ha', surface_totale),
+                'Total_Ha': total_ha,
                 'Poids_Ha': hist.get('poids_ha', 0),
-                'CA_Ha': hist.get('ca_ha', 0),
+                'CA_Ha': ca_ha_calc,
                 'Euro_Hl': euro_hl_value,
-                'CA_Net': hist.get('ca_net', 0),
-                'Rendement_Reel': hist.get('rendement_reel', 0)
+                'CA_Net': ca_net,
+                'Rendement_Reel': rdt_reel,
+                'Degre': hist.get('degre_moyen', 12.0)
             })
 
         df = pd.DataFrame(data).sort_values('Année')
-
-        # Forcer l'année en string pour affichage correct
         df['Année_str'] = df['Année'].astype(str)
 
         if len(df) > 0:
+            # --- KPI CARDS ---
+            last_year = df.iloc[-1]
+            avg_ca_ha = df['CA_Ha'].mean()
+            avg_euro_hl = df['Euro_Hl'].mean()
+
+            kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+            with kpi1:
+                st.metric(f"Poids {last_year['Année']}", f"{last_year['Poids_kg']:,.0f} kg",
+                          delta=f"{last_year['Poids_kg'] - df.iloc[-2]['Poids_kg']:,.0f}" if len(df) > 1 else None)
+            with kpi2:
+                st.metric(f"CA/Ha {last_year['Année']}", f"{last_year['CA_Ha']:,.0f} €",
+                          delta=f"{last_year['CA_Ha'] - avg_ca_ha:,.0f} vs moy", delta_color="normal")
+            with kpi3:
+                st.metric(f"Prix Hl {last_year['Année']}", f"{last_year['Euro_Hl']:.2f} €",
+                          delta=f"{last_year['Euro_Hl'] - avg_euro_hl:.2f} vs moy")
+            with kpi4:
+                st.metric(f"Rendement {last_year['Année']}", f"{last_year['Rendement_Reel']:.1f}%")
+
+            st.markdown("---")
+
+            # --- GRAPHIQUES PLOTLY ---
+
+            def create_bar_chart(df, x, y, title, color_hex="#3366CC"):
+                fig = px.bar(df, x=x, y=y, title=title,
+                             labels={x: 'Année', y: title.split(' (')[0]},
+                             template="plotly_dark")
+                fig.update_traces(marker_color=color_hex, opacity=0.8)
+                fig.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=350)
+                return fig
+
+            def create_line_chart(df, x, y, title, color_hex="#FF9900"):
+                fig = px.line(df, x=x, y=y, title=title, markers=True,
+                              labels={x: 'Année', y: title.split(' (')[0]},
+                              template="plotly_dark")
+                fig.update_traces(line_color=color_hex, line_width=3)
+                fig.update_layout(margin=dict(l=20, r=20, t=40, b=20), height=350)
+                return fig
+
             col_g1, col_g2 = st.columns(2)
 
             with col_g1:
-                st.markdown("**Poids Kg par Année**")
-                st.bar_chart(df.set_index('Année_str')['Poids_kg'])
+                st.plotly_chart(create_bar_chart(df, 'Année_str', 'Poids_kg', "Poids Kg par Année", "#60B4FF"), use_container_width=True)
 
             with col_g2:
-                st.markdown("**CA/Ha (€)**")
-                st.line_chart(df.set_index('Année_str')['CA_Ha'])
+                st.plotly_chart(create_line_chart(df, 'Année_str', 'CA_Ha', "CA/Ha (€) par Année", "#FF4B4B"), use_container_width=True)
 
             col_g3, col_g4 = st.columns(2)
 
             with col_g3:
-                st.markdown("**Poids/Ha (tonnes/ha)**")
-                st.bar_chart(df.set_index('Année_str')['Poids_Ha'])
+                st.plotly_chart(create_bar_chart(df, 'Année_str', 'Poids_Ha', "Poids/Ha (tonnes/ha)", "#00CC96"), use_container_width=True)
 
             with col_g4:
-                st.markdown("**€/Hl**")
-                st.line_chart(df.set_index('Année_str')['Euro_Hl'])
+                st.plotly_chart(create_line_chart(df, 'Année_str', 'Euro_Hl', "€/Hl par Année", "#AB63FA"), use_container_width=True)
 
             col_g5, col_g6 = st.columns(2)
 
             with col_g5:
-                st.markdown("**Chiffre d'Affaire Net (€)**")
                 df_ca_net = df[df['CA_Net'] > 0]
                 if len(df_ca_net) > 0:
-                    st.bar_chart(df_ca_net.set_index('Année_str')['CA_Net'])
+                    st.plotly_chart(create_bar_chart(df_ca_net, 'Année_str', 'CA_Net', "Chiffre d'Affaire Net (€)", "#FFA15A"), use_container_width=True)
                 else:
                     st.info("Aucune donnée CA Net disponible")
 
             with col_g6:
-                st.markdown("**Rendement Réel (%)**")
                 df_rdt = df[df['Rendement_Reel'] > 0]
                 if len(df_rdt) > 0:
-                    st.line_chart(df_rdt.set_index('Année_str')['Rendement_Reel'])
+                    st.plotly_chart(create_line_chart(df_rdt, 'Année_str', 'Rendement_Reel', "Rendement Réel (%)", "#19D3F3"), use_container_width=True)
                 else:
                     st.info("Aucune donnée rendement disponible")
 

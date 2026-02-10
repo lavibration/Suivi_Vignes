@@ -1282,7 +1282,7 @@
           "protection": {
             "score": 0,
             "dernier_traitement": "2025-11-10",
-            "facteur_limitant": "Lessivage (404.5mm)"
+            "facteur_limitant": "Lessivage (406.7mm)"
           },
           "decision": {
             "score": 0.0,
@@ -1294,11 +1294,11 @@
           },
           "meteo": {
             "temp_moy": 9.55,
-            "precipitation": 8.9,
+            "precipitation": 11.1,
             "humidite": 89
           },
           "previsions": {
-            "pluie_3j": 13.2
+            "pluie_3j": 14.7
           }
         },
         {
@@ -1333,11 +1333,11 @@
           },
           "meteo": {
             "temp_moy": 9.55,
-            "precipitation": 8.9,
+            "precipitation": 11.1,
             "humidite": 89
           },
           "previsions": {
-            "pluie_3j": 13.2
+            "pluie_3j": 14.7
           }
         },
         {
@@ -1372,11 +1372,11 @@
           },
           "meteo": {
             "temp_moy": 9.55,
-            "precipitation": 8.9,
+            "precipitation": 11.1,
             "humidite": 89
           },
           "previsions": {
-            "pluie_3j": 13.2
+            "pluie_3j": 14.7
           }
         },
         {
@@ -1399,7 +1399,7 @@
           "protection": {
             "score": 0,
             "dernier_traitement": "2025-11-08",
-            "facteur_limitant": "Lessivage (404.5mm)"
+            "facteur_limitant": "Lessivage (406.7mm)"
           },
           "decision": {
             "score": 0.0,
@@ -1411,11 +1411,11 @@
           },
           "meteo": {
             "temp_moy": 9.55,
-            "precipitation": 8.9,
+            "precipitation": 11.1,
             "humidite": 89
           },
           "previsions": {
-            "pluie_3j": 13.2
+            "pluie_3j": 14.7
           }
         }
       ]
