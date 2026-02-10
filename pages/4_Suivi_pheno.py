@@ -8,6 +8,11 @@ import json
 import sys
 import os
 from typing import Dict, List, Tuple
+import plotly.graph_objects as go
+try:
+    from scipy.signal import savgol_filter
+except ImportError:
+    savgol_filter = None
 
 # ==============================================================================
 # --- Initialisation des chemins et Imports (Adapté à votre structure) ---
@@ -175,6 +180,31 @@ def get_mean_value_zonal(image, ee_feature_collection):
     )
     return mean_stats.map(lambda f: f.set('date', image.get('date')))
 
+def smooth_series(df, column, window_length=5, polyorder=2):
+    """Lissage de la série temporelle."""
+    if df.empty or column not in df.columns:
+        return pd.Series(dtype=float)
+
+    if savgol_filter and len(df) >= window_length:
+        try:
+            # Savgol filter returns a numpy array
+            return savgol_filter(df[column], window_length=window_length, polyorder=polyorder)
+        except:
+            return df[column].rolling(window=3, center=True, min_periods=1).mean()
+    else:
+        return df[column].rolling(window=3, center=True, min_periods=1).mean()
+
+def flag_grass_noise(df):
+    """Identifie les points potentiellement bruités par l'enherbement inter-rang."""
+    if df.empty:
+        return df
+    # Mois de dormance : Nov, Dec, Jan, Fev
+    dormancy_months = [11, 12, 1, 2]
+    # Si on est en dormance et que le NDVI est élevé, c'est probablement de l'herbe
+    # On utilise un seuil empirique de 0.18 pour la vigne en dormance
+    df['grass_noise'] = (df.index.month.isin(dormancy_months)) & (df['NDVI'] > 0.18)
+    return df
+
 
 # ==============================================================================
 # --- APPLICATION STREAMLIT PRINCIPALE ---
@@ -277,6 +307,11 @@ if st.session_state.get('analyse_complete', False) and 'df_series' in st.session
     if df_parcelle.empty:
         st.warning(f"Aucune donnée satellite trouvée pour la parcelle '{parcelle_select}' après filtrage.")
     else:
+        # --- NOUVEAU : Traitement des données ---
+        df_parcelle = flag_grass_noise(df_parcelle)
+        df_parcelle['NDVI_smooth'] = smooth_series(df_parcelle, 'NDVI')
+        df_parcelle['NDMI_smooth'] = smooth_series(df_parcelle, 'NDMI')
+
         # Récupérer l'année de l'analyse pour la courbe de référence
         analysis_year = df_parcelle.index[0].year
         ref_df = get_reference_df(analysis_year)
@@ -284,23 +319,58 @@ if st.session_state.get('analyse_complete', False) and 'df_series' in st.session
         last_date = df_parcelle.index[-1]
         last_month = last_date.month
 
+        # --- FONCTION DE VISUALISATION PLOTLY ---
+        def create_index_chart(df, ref_df, index_name, title, color_map, y_min, y_max):
+            fig = go.Figure()
+            # Zones de dormance
+            years = df.index.year.unique()
+            for year in years:
+                fig.add_vrect(
+                    x0=pd.Timestamp(year, 11, 1), x1=pd.Timestamp(year, 12, 31),
+                    fillcolor="rgba(200, 200, 200, 0.3)", layer="below", line_width=0
+                )
+                fig.add_vrect(
+                    x0=pd.Timestamp(year, 1, 1), x1=pd.Timestamp(year, 2, 28),
+                    fillcolor="rgba(200, 200, 200, 0.3)", layer="below", line_width=0
+                )
+            # Références
+            fig.add_trace(go.Scatter(x=ref_df.index, y=ref_df[f'{index_name}_moy'],
+                                     name='Réf. Moyenne', line=dict(color='#ffa500', dash='dash')))
+            fig.add_trace(go.Scatter(x=ref_df.index, y=ref_df[f'{index_name}_min'],
+                                     name='Réf. Minimum', line=dict(color='#ff0000', dash='dot')))
+            # Brut
+            fig.add_trace(go.Scatter(x=df.index, y=df[index_name],
+                                     name='Mesuré (Brut)', mode='markers',
+                                     marker=dict(color=color_map['raw'], size=5, opacity=0.4)))
+            # Lissé
+            fig.add_trace(go.Scatter(x=df.index, y=df[f'{index_name}_smooth'],
+                                     name='Mesuré (Lissé)', line=dict(color=color_map['smooth'], width=3)))
+            # Bruit herbe
+            grass_df = df[df['grass_noise']]
+            if not grass_df.empty:
+                fig.add_trace(go.Scatter(x=grass_df.index, y=grass_df[index_name],
+                                         name='Bruit Enherbement', mode='markers',
+                                         marker=dict(color='purple', size=8, symbol='x')))
+            fig.update_layout(
+                title=title, xaxis_title="Date", yaxis_title=index_name,
+                yaxis=dict(range=[y_min, y_max]),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                margin=dict(l=0, r=0, t=40, b=0), height=350
+            )
+            return fig
+
         # --- ALERTE ET GRAPHIQUE NDVI ---
         col_g1, col_g2 = st.columns(2)
 
         with col_g1:
-            st.markdown("#### Vigueur (NDVI)")
-
-            # Combiner les données mesurées et les références
-            plot_df_ndvi = pd.concat([
-                df_parcelle['NDVI'].rename('NDVI (Mesuré)'),
-                ref_df[['NDVI_min', 'NDVI_moy']]
-            ])
-
-            st.line_chart(plot_df_ndvi, use_container_width=True, height=250,
-                          color=['#1f77b4', '#ff0000', '#ffa500'])  # Mesuré (bleu), Min (rouge), Moy (orange)
+            fig_ndvi = create_index_chart(
+                df_parcelle, ref_df, 'NDVI', "Vigueur (NDVI)",
+                {'raw': '#1f77b4', 'smooth': '#00008b'}, 0, 0.6
+            )
+            st.plotly_chart(fig_ndvi, use_container_width=True)
 
             # Logique d'alerte basée sur la dernière mesure vs le min du mois
-            last_ndvi = df_parcelle['NDVI'].iloc[-1]
+            last_ndvi = df_parcelle['NDVI_smooth'].iloc[-1]
             ref_min_ndvi = REFERENCE_TABLE[last_month]['NDVI_min']
 
             if last_ndvi < ref_min_ndvi and REFERENCE_TABLE[last_month]['Stade'] != 'dormance':
@@ -311,19 +381,14 @@ if st.session_state.get('analyse_complete', False) and 'df_series' in st.session
 
         # --- ALERTE ET GRAPHIQUE NDMI ---
         with col_g2:
-            st.markdown("#### Humidité Foliaire (NDMI)")
-
-            # Combiner les données mesurées et les références
-            plot_df_ndmi = pd.concat([
-                df_parcelle['NDMI'].rename('NDMI (Mesuré)'),
-                ref_df[['NDMI_min', 'NDMI_moy']]
-            ])
-
-            st.line_chart(plot_df_ndmi, use_container_width=True, height=250,
-                          color=['#ff7f0e', '#008000', '#a6cee3'])  # Mesuré (orange), Min (vert), Moy (bleu clair)
+            fig_ndmi = create_index_chart(
+                df_parcelle, ref_df, 'NDMI', "Humidité Foliaire (NDMI)",
+                {'raw': '#ff7f0e', 'smooth': '#d62728'}, -0.1, 0.2
+            )
+            st.plotly_chart(fig_ndmi, use_container_width=True)
 
             # Logique d'alerte
-            last_ndmi = df_parcelle['NDMI'].iloc[-1]
+            last_ndmi = df_parcelle['NDMI_smooth'].iloc[-1]
             ref_min_ndmi = REFERENCE_TABLE[last_month]['NDMI_min']
 
             if last_ndmi < ref_min_ndmi and REFERENCE_TABLE[last_month]['Stade'] != 'dormance':

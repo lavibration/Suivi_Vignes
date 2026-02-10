@@ -1261,6 +1261,162 @@
           "previsions": {
             "pluie_3j": 11.6
           }
+        },
+        {
+          "date": "2026-02-10",
+          "parcelle": "Cabernet Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "bilan_hydrique_ks": 1.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0,
+            "dernier_traitement": "2025-11-10",
+            "facteur_limitant": "Lessivage (404.5mm)"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "CONFORTABLE (Dormance)"
+          },
+          "meteo": {
+            "temp_moy": 9.55,
+            "precipitation": 8.9,
+            "humidite": 89
+          },
+          "previsions": {
+            "pluie_3j": 13.2
+          }
+        },
+        {
+          "date": "2026-02-10",
+          "parcelle": "Caladoc Graviers",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "bilan_hydrique_ks": 1.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "CONFORTABLE (Dormance)"
+          },
+          "meteo": {
+            "temp_moy": 9.55,
+            "precipitation": 8.9,
+            "humidite": 89
+          },
+          "previsions": {
+            "pluie_3j": 13.2
+          }
+        },
+        {
+          "date": "2026-02-10",
+          "parcelle": "Les Ponts",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "bilan_hydrique_ks": 1.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0.0,
+            "dernier_traitement": null,
+            "facteur_limitant": "Aucun traitement"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "CONFORTABLE (Dormance)"
+          },
+          "meteo": {
+            "temp_moy": 9.55,
+            "precipitation": 8.9,
+            "humidite": 89
+          },
+          "previsions": {
+            "pluie_3j": 13.2
+          }
+        },
+        {
+          "date": "2026-02-10",
+          "parcelle": "Fate",
+          "stade": "repos",
+          "gdd_cumul": 0,
+          "gdd_stade_estime": "repos",
+          "bilan_hydrique_pct": 100.0,
+          "bilan_hydrique_ks": 1.0,
+          "risque_mildiou": {
+            "score": 0.0,
+            "niveau": "FAIBLE",
+            "ipi": 0
+          },
+          "risque_oidium": {
+            "score": 0,
+            "niveau": "FAIBLE"
+          },
+          "protection": {
+            "score": 0,
+            "dernier_traitement": "2025-11-08",
+            "facteur_limitant": "Lessivage (404.5mm)"
+          },
+          "decision": {
+            "score": 0.0,
+            "action": "Pas de traitement Mildiou nécessaire",
+            "urgence": "faible",
+            "alerte_oidium": "",
+            "alerte_stade": "Prévision inactive (dormance)",
+            "alerte_hydrique": "CONFORTABLE (Dormance)"
+          },
+          "meteo": {
+            "temp_moy": 9.55,
+            "precipitation": 8.9,
+            "humidite": 89
+          },
+          "previsions": {
+            "pluie_3j": 13.2
+          }
         }
       ]
     }

@@ -106,3 +106,4 @@ widgetsnbextension==4.0.15
 xyzservices==2025.10.0
 st-gsheets-connection
 gspread
+scipy==1.15.1
