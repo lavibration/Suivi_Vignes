@@ -32,6 +32,8 @@ def get_parcel_surface(systeme, parcel_name):
 
 try:
     systeme = init_systeme()
+    # Forcer le rafraîchissement des produits
+    systeme.traitements.FONGICIDES = systeme.traitements.charger_produits()
 
     # Onglets
     tab1, tab2, tab3 = st.tabs(["➕ Ajouter un Traitement", "📋 Registre & Historique", "📊 Statistiques"])
@@ -70,8 +72,9 @@ try:
                 )
 
             # Produit
-            produits = list(systeme.traitements.FONGICIDES.keys())
-            produits_noms = [systeme.traitements.FONGICIDES[p]['nom'] for p in produits]
+            produits_dict = systeme.traitements.FONGICIDES
+            produits_ids = list(produits_dict.keys())
+            produits_noms = [produits_dict[p]['nom'] for p in produits_ids]
 
             produit_selectionne = st.selectbox(
                 "💊 Produit *",
@@ -79,17 +82,18 @@ try:
                 key="select_produit"
             )
 
-            produit_key = produits[produits_noms.index(produit_selectionne)]
-            produit_info = systeme.traitements.FONGICIDES[produit_key]
+            produit_key = produits_ids[produits_noms.index(produit_selectionne)]
+            produit_info = produits_dict[produit_key]
 
-            st.info(f"**N° AMM :** {produit_info.get('n_amm', 'N/A')} | **Dose réf :** {produit_info['dose_reference_kg_ha']} kg/ha")
+            st.info(f"**N° AMM :** {produit_info.get('n_amm', 'N/A')} | **Type :** {produit_info.get('type', 'N/A')} | **Dose réf :** {produit_info.get('dose_reference_kg_ha', 0)} kg/ha")
 
             col3, col4 = st.columns(2)
             with col3:
+                # Utiliser la dose de référence par défaut
                 dose = st.number_input(
                     "⚖️ Quantité / ha (kg ou L) *",
                     min_value=0.0,
-                    value=produit_info['dose_reference_kg_ha'],
+                    value=float(produit_info.get('dose_reference_kg_ha', 1.0)),
                     step=0.1,
                     key=f"dose_{produit_key}"
                 )

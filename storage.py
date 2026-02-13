@@ -99,7 +99,8 @@ class DataManager:
             'historique_alertes': 'alertes',
             'gdd_historique': 'gdd',
             'vendanges': 'vendanges',
-            'config_vignoble': 'config'
+            'config_vignoble': 'config',
+            'produits': 'produits'
         }
         return mapping.get(key, key)
 
@@ -124,6 +125,9 @@ class DataManager:
             return self._get_default_for_key(key)
 
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+
+        if key == 'produits':
+            return {'produits': df.to_dict(orient='records')}
 
         if key == 'traitements':
             recs = df.to_dict(orient='records')
@@ -231,6 +235,9 @@ class DataManager:
         """Convertit une structure JSON en DataFrame pour GSheets."""
         if not data: return pd.DataFrame()
 
+        if key == 'produits':
+            return pd.DataFrame(data.get('produits', []))
+
         if key == 'traitements':
             rows = []
             for t in data.get('traitements', []):
@@ -319,6 +326,7 @@ class DataManager:
             'historique_alertes': {'campagnes': []},
             'gdd_historique': {},
             'vendanges': {'campagnes': []},
-            'config_vignoble': {}
+            'config_vignoble': {},
+            'produits': {'produits': []}
         }
         return defaults.get(key, {})

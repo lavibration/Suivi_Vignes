@@ -519,7 +519,7 @@ class ModeleBilanHydrique:
 
 class GestionTraitements:
     """Gestion des traitements et calcul de la protection résiduelle"""
-    FONGICIDES = {
+    INITIAL_FONGICIDES = {
         'bouillie_bordelaise': {'nom': 'Bouillie bordelaise', 'persistance_jours': 10, 'lessivage_seuil_mm': 30,
                                 'type': 'contact', 'dose_reference_kg_ha': 2.0, 'n_amm': '2010486'},
         'cymoxanil': {'nom': 'Cymoxanil', 'persistance_jours': 7, 'lessivage_seuil_mm': 20, 'type': 'penetrant',
@@ -540,6 +540,27 @@ class GestionTraitements:
         self.key = fichier_historique.replace('.json', '')
         self.storage = DataManager()
         self.historique = self.charger_historique()
+        self.FONGICIDES = self.charger_produits()
+
+    def charger_produits(self) -> Dict:
+        """Charge la liste des produits depuis le stockage ou utilise les valeurs par défaut."""
+        data = self.storage.load_data('produits', default_factory=lambda: {'produits': []})
+        produits_list = data.get('produits', [])
+
+        if not produits_list:
+            # Migration des anciens fongicides vers le nouveau format
+            produits_dict = self.INITIAL_FONGICIDES
+            # On sauvegarde pour la première fois si vide
+            list_to_save = []
+            for k, v in produits_dict.items():
+                item = v.copy()
+                if 'id' not in item: item['id'] = k
+                list_to_save.append(item)
+            self.storage.save_data('produits', {'produits': list_to_save})
+            return produits_dict
+
+        # Reconstruire le dictionnaire indexé par le nom technique (ou id)
+        return {p.get('id', p['nom'].lower().replace(' ', '_')): p for p in produits_list}
 
     def charger_historique(self) -> Dict:
         return self.storage.load_data(self.key, default_factory=lambda: {'traitements': []})
@@ -552,11 +573,26 @@ class GestionTraitements:
                            type_utilisation: str = "Plein champ", cible: str = "Mildiou",
                            conditions_meteo: str = "Ensoleillé, vent faible", applicateur: str = "",
                            systeme_culture: str = "PC", culture: str = "Vigne"):
-        produit_key = produit.lower().replace(' ', '_')
+
+        # On rafraîchit la liste des produits pour être sûr d'avoir les derniers ajouts
+        self.FONGICIDES = self.charger_produits()
+
+        produit_key = produit # On attend l'ID maintenant
         if produit_key not in self.FONGICIDES:
-            print(f"⚠️  Produit '{produit}' inconnu. Ajout avec paramètres par défaut.")
-            caracteristiques = {'nom': produit, 'persistance_jours': 7, 'lessivage_seuil_mm': 25, 'type': 'contact',
-                                'dose_reference_kg_ha': 1.0, 'n_amm': 'N/A'}
+            # Essayer par nom si l'ID ne matche pas (compatibilité)
+            found = False
+            for k, v in self.FONGICIDES.items():
+                if v['nom'] == produit:
+                    produit_key = k
+                    found = True
+                    break
+
+            if not found:
+                print(f"⚠️  Produit '{produit}' inconnu. Ajout avec paramètres par défaut.")
+                caracteristiques = {'nom': produit, 'persistance_jours': 7, 'lessivage_seuil_mm': 25, 'type': 'contact',
+                                    'dose_reference_kg_ha': 1.0, 'n_amm': 'N/A'}
+            else:
+                caracteristiques = self.FONGICIDES[produit_key].copy()
         else:
             caracteristiques = self.FONGICIDES[produit_key].copy()
 

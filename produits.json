@@ -1,0 +1,49 @@
+{
+  "produits": [
+    {
+      "nom": "Bouillie bordelaise",
+      "persistance_jours": 10,
+      "lessivage_seuil_mm": 30,
+      "type": "contact",
+      "dose_reference_kg_ha": 2.0,
+      "n_amm": "2010486",
+      "id": "bouillie_bordelaise"
+    },
+    {
+      "nom": "Cymoxanil",
+      "persistance_jours": 7,
+      "lessivage_seuil_mm": 20,
+      "type": "penetrant",
+      "dose_reference_kg_ha": 0.5,
+      "n_amm": "9500057",
+      "id": "cymoxanil"
+    },
+    {
+      "nom": "Fosétyl-Al",
+      "persistance_jours": 14,
+      "lessivage_seuil_mm": 40,
+      "type": "systemique",
+      "dose_reference_kg_ha": 2.5,
+      "n_amm": "2110118",
+      "id": "fosetyl_al"
+    },
+    {
+      "nom": "Mancozèbe",
+      "persistance_jours": 7,
+      "lessivage_seuil_mm": 25,
+      "type": "contact",
+      "dose_reference_kg_ha": 1.6,
+      "n_amm": "8000494",
+      "id": "mancozebe"
+    },
+    {
+      "nom": "Soufre",
+      "persistance_jours": 8,
+      "lessivage_seuil_mm": 15,
+      "type": "contact",
+      "dose_reference_kg_ha": 3.0,
+      "n_amm": "2080066",
+      "id": "soufre"
+    }
+  ]
+}
