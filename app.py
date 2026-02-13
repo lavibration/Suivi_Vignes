@@ -67,7 +67,7 @@ st.markdown("""
 
 # Initialisation du système (avec cache pour performance)
 @st.cache_resource
-def init_systeme():
+def init_systeme_v2():
     return SystemeDecision()
 
 # Fonction pour sauvegarder le stade d'une parcelle
@@ -119,7 +119,7 @@ with st.sidebar:
     st.markdown("---")
 
     try:
-        systeme = init_systeme()
+        systeme = init_systeme_v2()
         systeme.config.load_config()
         st.success(f"✅ {len(systeme.config.parcelles)} parcelles configurées")
         st.success(f"✅ {systeme.config.surface_totale:.1f} ha total")
@@ -134,7 +134,7 @@ with st.sidebar:
 
 # Main content
 try:
-    systeme = init_systeme()
+    systeme = init_systeme_v2()
 
     col_date, col_refresh = st.columns([3, 1])
     with col_date:
@@ -412,7 +412,7 @@ try:
 
                 st.markdown(f"""
                 <div class="{alert_class} unified-decision" style="margin-top: 10px; margin-bottom: 10px;">
-                    <strong>{urgence_icon} Décision Unifiée</strong>
+                    <strong>{urgence_icon} Decision Unifiée</strong>
                     <ul>
                         <li><strong>Mildiou :</strong> {message_mildiou}</li>
                         <li><strong>Oïdium :</strong> {message_oidium}</li>

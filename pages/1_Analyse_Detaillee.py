@@ -80,11 +80,11 @@ st.title("🔍 Analyse Détaillée d'une Parcelle")
 
 # Initialiser le système
 @st.cache_resource
-def init_systeme():
+def init_systeme_v2():
     return SystemeDecision()
 
 try:
-    systeme = init_systeme()
+    systeme = init_systeme_v2()
 
     # Sidebar
     with st.sidebar:
@@ -280,7 +280,7 @@ try:
 
             st.markdown(f"""
             <div class="{alert_class} unified-decision">
-                <strong>{urgence_icon} Décision Unifiée</strong>
+                <strong>{urgence_icon} Decision Unifiée</strong>
                 <ul>
                     <li><strong>Mildiou :</strong> {message_mildiou}</li>
                     <li><strong>Oïdium :</strong> {message_oidium}</li>
@@ -392,7 +392,7 @@ try:
                     - Température vs Durée humectation
                     - Table Lalancette et al.
                     **Niveau :** {risque_m.get('ipi_niveau', 'N/A')}
-                    
+
                     💡 *L'IPI évalue la sévérité potentielle si infection.*
                     """)
                 elif utiliser_ipi:
