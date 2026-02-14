@@ -21,7 +21,7 @@ st.title("💊 Gestion des Traitements & Registre")
 
 # Initialiser le système
 @st.cache_resource
-def init_systeme():
+def init_systeme_v2():
     return SystemeDecision()
 
 def get_parcel_surface(systeme, parcel_name):
@@ -31,9 +31,10 @@ def get_parcel_surface(systeme, parcel_name):
     return 0.0
 
 try:
-    systeme = init_systeme()
+    systeme = init_systeme_v2()
     # Forcer le rafraîchissement des produits
-    systeme.traitements.FONGICIDES = systeme.traitements.charger_produits()
+    if hasattr(systeme.traitements, 'charger_produits'):
+        systeme.traitements.FONGICIDES = systeme.traitements.charger_produits()
 
     # Onglets
     tab1, tab2, tab3 = st.tabs(["➕ Ajouter un Traitement", "📋 Registre & Historique", "📊 Statistiques"])
