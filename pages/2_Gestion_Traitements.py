@@ -74,8 +74,14 @@ try:
 
             # Produit
             produits_dict = systeme.traitements.FONGICIDES
-            produits_ids = list(produits_dict.keys())
-            produits_noms = [produits_dict[p]['nom'] for p in produits_ids]
+            # Filtrer pour n'afficher que les produits phytosanitaires
+            phyto_ids = [k for k, v in produits_dict.items() if v.get('type') in ["contact", "penetrant", "systemique", "autre"]]
+
+            if not phyto_ids:
+                st.warning("⚠️ Aucun produit phytosanitaire trouvé. Allez dans 'Paramètres' pour en ajouter.")
+                produits_noms = []
+            else:
+                produits_noms = [produits_dict[p]['nom'] for p in phyto_ids]
 
             produit_selectionne = st.selectbox(
                 "💊 Produit *",
@@ -83,8 +89,8 @@ try:
                 key="select_produit"
             )
 
-            produit_key = produits_ids[produits_noms.index(produit_selectionne)]
-            produit_info = produits_dict[produit_key]
+            produit_key = phyto_ids[produits_noms.index(produit_selectionne)] if phyto_ids else None
+            produit_info = produits_dict[produit_key] if produit_key else {}
 
             st.info(f"**N° AMM :** {produit_info.get('n_amm', 'N/A')} | **Type :** {produit_info.get('type', 'N/A')} | **Dose réf :** {produit_info.get('dose_reference_kg_ha', 0)} kg/ha")
 

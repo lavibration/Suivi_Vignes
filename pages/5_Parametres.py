@@ -139,7 +139,7 @@ with tab2:
     if produits_list:
         df_produits = pd.DataFrame(produits_list)
         # Réorganiser colonnes pour lisibilité
-        cols = ['nom', 'n_amm', 'type', 'persistance_jours', 'lessivage_seuil_mm', 'dose_reference_kg_ha']
+        cols = ['nom', 'n_amm', 'type', 'persistance_jours', 'lessivage_seuil_mm', 'dose_reference_kg_ha', 'bio']
         st.dataframe(df_produits[[c for c in cols if c in df_produits.columns]], use_container_width=True, hide_index=True)
 
     st.markdown("---")
@@ -151,11 +151,28 @@ with tab2:
         with st.form("form_add_produit", clear_on_submit=True):
             p_nom = st.text_input("Nom commercial *")
             p_amm = st.text_input("N° AMM")
-            p_type = st.selectbox("Type *", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "autre"])
+            p_type = st.selectbox("Type *", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"])
 
             p_pers = st.number_input("Persistance (jours) *", min_value=0, value=7)
             p_less = st.number_input("Seuil lessivage (mm) *", min_value=0, value=25)
             p_dose = st.number_input("Dose référence (Kg/Ha ou L/Ha) *", min_value=0.0, value=1.0, step=0.1, format="%.2f")
+
+            st.markdown("---")
+            st.markdown("**Composition Engrais / Amendement (si applicable)**")
+            col_comp1, col_comp2, col_comp3 = st.columns(3)
+            p_n = col_comp1.number_input("N (Azote) %", min_value=0.0, value=0.0, step=0.1)
+            p_p = col_comp2.number_input("P (Phosphore) %", min_value=0.0, value=0.0, step=0.1)
+            p_k = col_comp3.number_input("K (Potasse) %", min_value=0.0, value=0.0, step=0.1)
+
+            col_oligo1, col_oligo2, col_oligo3, col_oligo4 = st.columns(4)
+            p_mgo = col_oligo1.number_input("MgO %", min_value=0.0, value=0.0, step=0.1)
+            p_bore = col_oligo2.number_input("Bore %", min_value=0.0, value=0.0, step=0.1)
+            p_zinc = col_oligo3.number_input("Zinc %", min_value=0.0, value=0.0, step=0.1)
+            p_mn = col_oligo4.number_input("Manganèse %", min_value=0.0, value=0.0, step=0.1)
+
+            col_app1, col_app2 = st.columns(2)
+            p_app_type = col_app1.selectbox("Application", ["Sol", "Foliaire"])
+            p_bio = col_app2.checkbox("Mention Bio (UAB)")
 
             submit_p_add = st.form_submit_button("Ajouter le Produit", type="primary")
 
@@ -169,7 +186,11 @@ with tab2:
                         "type": p_type,
                         "persistance_jours": p_pers,
                         "lessivage_seuil_mm": p_less,
-                        "dose_reference_kg_ha": p_dose
+                        "dose_reference_kg_ha": p_dose,
+                        "n": p_n, "p": p_p, "k": p_k,
+                        "mgo": p_mgo, "bore": p_bore, "zinc": p_zinc, "mn": p_mn,
+                        "type_application": p_app_type,
+                        "bio": p_bio
                     }
 
                     # Charger, ajouter et sauvegarder
@@ -191,12 +212,30 @@ with tab2:
             with st.form("form_edit_produit"):
                 pe_nom = st.text_input("Nom commercial", value=p_to_edit['nom'])
                 pe_amm = st.text_input("N° AMM", value=p_to_edit.get('n_amm', ''))
-                pe_type = st.selectbox("Type", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "autre"],
-                                       index=["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "autre"].index(p_to_edit.get('type', 'contact')) if p_to_edit.get('type') in ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "autre"] else 0)
+                pe_type = st.selectbox("Type", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"],
+                                       index=["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"].index(p_to_edit.get('type', 'contact')) if p_to_edit.get('type') in ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"] else 0)
 
                 pe_pers = st.number_input("Persistance (jours)", min_value=0, value=int(p_to_edit.get('persistance_jours', 7)))
                 pe_less = st.number_input("Seuil lessivage (mm)", min_value=0, value=int(p_to_edit.get('lessivage_seuil_mm', 25)))
                 pe_dose = st.number_input("Dose référence", min_value=0.0, value=float(p_to_edit.get('dose_reference_kg_ha', 1.0)), step=0.1, format="%.2f")
+
+                st.markdown("---")
+                st.markdown("**Composition Engrais / Amendement**")
+                col_ecomp1, col_ecomp2, col_ecomp3 = st.columns(3)
+                pe_n = col_ecomp1.number_input("N (Azote) %", min_value=0.0, value=float(p_to_edit.get('n', 0.0)), step=0.1)
+                pe_p = col_ecomp2.number_input("P (Phosphore) %", min_value=0.0, value=float(p_to_edit.get('p', 0.0)), step=0.1)
+                pe_k = col_ecomp3.number_input("K (Potasse) %", min_value=0.0, value=float(p_to_edit.get('k', 0.0)), step=0.1)
+
+                col_eoligo1, col_eoligo2, col_eoligo3, col_eoligo4 = st.columns(4)
+                pe_mgo = col_eoligo1.number_input("MgO %", min_value=0.0, value=float(p_to_edit.get('mgo', 0.0)), step=0.1)
+                pe_bore = col_eoligo2.number_input("Bore %", min_value=0.0, value=float(p_to_edit.get('bore', 0.0)), step=0.1)
+                pe_zinc = col_eoligo3.number_input("Zinc %", min_value=0.0, value=float(p_to_edit.get('zinc', 0.0)), step=0.1)
+                pe_mn = col_eoligo4.number_input("Manganèse %", min_value=0.0, value=float(p_to_edit.get('mn', 0.0)), step=0.1)
+
+                col_eapp1, col_eapp2 = st.columns(2)
+                pe_app_type = col_eapp1.selectbox("Application", ["Sol", "Foliaire"],
+                                                  index=["Sol", "Foliaire"].index(p_to_edit.get('type_application', 'Sol')) if p_to_edit.get('type_application') in ["Sol", "Foliaire"] else 0)
+                pe_bio = col_eapp2.checkbox("Mention Bio (UAB)", value=bool(p_to_edit.get('bio', False)))
 
                 col_pb1, col_pb2 = st.columns(2)
                 submit_pe_edit = col_pb1.form_submit_button("Sauvegarder", use_container_width=True)
@@ -212,6 +251,15 @@ with tab2:
                             prod['persistance_jours'] = pe_pers
                             prod['lessivage_seuil_mm'] = pe_less
                             prod['dose_reference_kg_ha'] = pe_dose
+                            prod['n'] = pe_n
+                            prod['p'] = pe_p
+                            prod['k'] = pe_k
+                            prod['mgo'] = pe_mgo
+                            prod['bore'] = pe_bore
+                            prod['zinc'] = pe_zinc
+                            prod['mn'] = pe_mn
+                            prod['type_application'] = pe_app_type
+                            prod['bio'] = pe_bio
                             break
                     storage.save_data('produits', data)
                     st.cache_resource.clear()

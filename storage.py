@@ -100,7 +100,8 @@ class DataManager:
             'gdd_historique': 'gdd',
             'vendanges': 'vendanges',
             'config_vignoble': 'config',
-            'produits': 'produits'
+            'produits': 'produits',
+            'fertilisation': 'fertilisation'
         }
         return mapping.get(key, key)
 
@@ -128,6 +129,9 @@ class DataManager:
 
         if key == 'produits':
             return {'produits': df.to_dict(orient='records')}
+
+        if key == 'fertilisation':
+            return {'apports': df.to_dict(orient='records')}
 
         if key == 'traitements':
             recs = df.to_dict(orient='records')
@@ -238,6 +242,9 @@ class DataManager:
         if key == 'produits':
             return pd.DataFrame(data.get('produits', []))
 
+        if key == 'fertilisation':
+            return pd.DataFrame(data.get('apports', []))
+
         if key == 'traitements':
             rows = []
             for t in data.get('traitements', []):
@@ -327,6 +334,7 @@ class DataManager:
             'gdd_historique': {},
             'vendanges': {'campagnes': []},
             'config_vignoble': {},
-            'produits': {'produits': []}
+            'produits': {'produits': []},
+            'fertilisation': {'apports': []}
         }
         return defaults.get(key, {})

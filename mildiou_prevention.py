@@ -671,6 +671,68 @@ class GestionTraitements:
                 'periode': f"{date_debut} à {date_fin}"}
 
 
+class GestionFertilisation:
+    """Gestion des apports en engrais et amendements"""
+
+    def __init__(self, fichier='fertilisation'):
+        self.key = fichier.replace('.json', '')
+        self.storage = DataManager()
+        self.donnees = self.charger_donnees()
+
+    def charger_donnees(self) -> Dict:
+        return self.storage.load_data(self.key, default_factory=lambda: {'apports': []})
+
+    def sauvegarder(self):
+        self.storage.save_data(self.key, self.donnees)
+
+    def ajouter_apport(self, parcelle: str, date_apport: str, produit_id: str, produit_info: Dict, quantite_ha: float):
+        """Ajoute un apport et calcule les unités"""
+
+        # Calcul des unités : Qty * (% / 100)
+        u_n = quantite_ha * (float(produit_info.get('n', 0)) / 100)
+        u_p = quantite_ha * (float(produit_info.get('p', 0)) / 100)
+        u_k = quantite_ha * (float(produit_info.get('k', 0)) / 100)
+
+        apport = {
+            'parcelle': parcelle,
+            'date': date_apport,
+            'produit_id': produit_id,
+            'produit_nom': produit_info.get('nom', produit_id),
+            'quantite_ha': quantite_ha,
+            'u_n': round(u_n, 2),
+            'u_p': round(u_p, 2),
+            'u_k': round(u_k, 2),
+            'bio': produit_info.get('bio', False),
+            'type_application': produit_info.get('type_application', 'Sol')
+        }
+
+        self.donnees['apports'].append(apport)
+        self.sauvegarder()
+        return apport
+
+    def get_bilan_annuel(self, annee: int) -> Dict:
+        """Retourne le bilan N-P-K par parcelle pour une année"""
+        bilan = {}
+        for a in self.donnees['apports']:
+            date_dt = datetime.strptime(a['date'], '%Y-%m-%d')
+            if date_dt.year == annee:
+                p = a['parcelle']
+                if p not in bilan:
+                    bilan[p] = {'n': 0, 'p': 0, 'k': 0, 'nb_passages': 0}
+                bilan[p]['n'] += a['u_n']
+                bilan[p]['p'] += a['u_p']
+                bilan[p]['k'] += a['u_k']
+                bilan[p]['nb_passages'] += 1
+
+        # Arrondir les résultats
+        for p in bilan:
+            bilan[p]['n'] = round(bilan[p]['n'], 1)
+            bilan[p]['p'] = round(bilan[p]['p'], 1)
+            bilan[p]['k'] = round(bilan[p]['k'], 1)
+
+        return bilan
+
+
 class GestionHistoriqueAlertes:
     """Gestion de l'historique des alertes et analyses"""
 
