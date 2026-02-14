@@ -206,6 +206,65 @@ try:
 
             st.markdown(f"**Objectif de Production :** {obj} hl/ha")
 
+            # --- BAR CHART BREAKDOWN ---
+            st.markdown("### 📊 Répartition des Apports vs Besoins")
+
+            breakdown = bilan_pilot.get('breakdown', {
+                'sol': {'n': 0, 'p': 0, 'k': 0},
+                'foliaire': {'n': 0, 'p': 0, 'k': 0},
+                'sarments': {'n': 0, 'p': 0, 'k': 0}
+            })
+
+            elements = ['N (Azote)', 'P (Phosphore)', 'K (Potasse)']
+            keys = ['n', 'p', 'k']
+
+            fig_bar = go.Figure()
+
+            # Apport Sol
+            fig_bar.add_trace(go.Bar(
+                name='Apport Sol',
+                x=elements,
+                y=[breakdown['sol'].get(k, 0) for k in keys],
+                marker_color='#2ca02c'
+            ))
+
+            # Apport Foliaire
+            fig_bar.add_trace(go.Bar(
+                name='Apport Foliaire',
+                x=elements,
+                y=[breakdown['foliaire'].get(k, 0) for k in keys],
+                marker_color='#8fd974'
+            ))
+
+            # Restitution Sarments
+            fig_bar.add_trace(go.Bar(
+                name='Restitution Sarments (Bio-sourcé)',
+                x=elements,
+                y=[breakdown['sarments'].get(k, 0) for k in keys],
+                marker_color='#a67c52',
+                marker_pattern_shape="/"
+            ))
+
+            # Ligne de besoin
+            fig_bar.add_trace(go.Scatter(
+                name='Besoin Théorique',
+                x=elements,
+                y=[besoins[k] for k in keys],
+                mode='markers',
+                marker=dict(color='white', size=20, symbol='line-ew-open', line=dict(width=3))
+            ))
+
+            fig_bar.update_layout(
+                barmode='stack',
+                template="plotly_dark",
+                height=450,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                yaxis_title="Unités / Ha",
+                margin=dict(l=20, r=20, t=60, b=20)
+            )
+
+            st.plotly_chart(fig_bar, use_container_width=True)
+
             # --- GAUGES ---
             col_g1, col_g2, col_g3 = st.columns(3)
 

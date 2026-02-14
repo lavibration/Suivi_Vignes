@@ -70,6 +70,8 @@ class ConfigVignoble:
                     p['rfu_max_mm'] = config.get('parametres', {}).get('rfu_max_mm_default', 100.0)
                 if 'objectif_rdt' not in p:
                     p['objectif_rdt'] = 50.0 # hl/ha par défaut
+                if 'broyage_sarments' not in p:
+                    p['broyage_sarments'] = False
 
             self.parcelles = config['parcelles']
 
@@ -126,12 +128,12 @@ class ConfigVignoble:
                 {
                     "nom": "Parcelle 1", "surface_ha": 1.5, "cepages": ["Grenache", "Syrah"],
                     "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0,
-                    "objectif_rdt": 50.0
+                    "objectif_rdt": 50.0, "broyage_sarments": True
                 },
                 {
                     "nom": "Parcelle 2", "surface_ha": 1.5, "cepages": ["Mourvèdre"],
                     "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0,
-                    "objectif_rdt": 50.0
+                    "objectif_rdt": 50.0, "broyage_sarments": True
                 }
             ],
             "parametres": self.get_default_parameters()
@@ -747,8 +749,25 @@ class GestionFertilisation:
 
         return bilan
 
+    def get_bilan_detaille(self, annee: int, parcelle_nom: str) -> Dict:
+        """Retourne le bilan N-P-K détaillé (Sol vs Foliaire)"""
+        detail = {'sol': {'n': 0, 'p': 0, 'k': 0}, 'foliaire': {'n': 0, 'p': 0, 'k': 0}}
+        for a in self.donnees['apports']:
+            date_dt = datetime.strptime(a['date'], '%Y-%m-%d')
+            if date_dt.year == annee and a['parcelle'] == parcelle_nom:
+                t = a.get('type_application', 'Sol').lower()
+                if t not in detail: detail[t] = {'n': 0, 'p': 0, 'k': 0}
+                detail[t]['n'] += a['u_n']
+                detail[t]['p'] += a['u_p']
+                detail[t]['k'] += a['u_k']
+
+        for t in detail:
+            for k in detail[t]:
+                detail[t][k] = round(detail[t][k], 1)
+        return detail
+
     def calculer_bilan_pilotage(self, parcelle_nom: str, annee: int, config_vignoble: 'ConfigVignoble') -> Dict:
-        """Calcule les besoins théoriques et le solde pour une parcelle"""
+        """Calcule les besoins théoriques et le solde pour une parcelle avec breakdown sarments"""
         parcelle = next((p for p in config_vignoble.parcelles if p['nom'] == parcelle_nom), None)
         if not parcelle:
             return {}
@@ -780,22 +799,39 @@ class GestionFertilisation:
         besoin_p = objectif_hl_ha * avg_coef_p
         besoin_k = objectif_hl_ha * avg_coef_k
 
-        # Récupérer les apports réels de l'année
-        bilan_annuel = self.get_bilan_annuel(annee)
-        apports = bilan_annuel.get(parcelle_nom, {'n': 0, 'p': 0, 'k': 0})
+        # Récupérer les apports réels de l'année (Breakdown Sol/Foliaire)
+        apports_detail = self.get_bilan_detaille(annee, parcelle_nom)
+        apport_sol = apports_detail.get('sol', {'n': 0, 'p': 0, 'k': 0})
+        apport_foliaire = apports_detail.get('foliaire', {'n': 0, 'p': 0, 'k': 0})
 
-        solde_n = apports['n'] - besoin_n
-        solde_p = apports['p'] - besoin_p
-        solde_k = apports['k'] - besoin_k
+        # Crédit sarments (hypothèse conservatrice)
+        restitution = {'n': 0, 'p': 0, 'k': 0, 'mgo': 0}
+        if parcelle.get('broyage_sarments', False):
+            # K: +21, P: +3.5, MgO: +3.5, N: +0
+            restitution = {'n': 0.0, 'p': 3.5, 'k': 21.0, 'mgo': 3.5}
 
-        couverture_n = (apports['n'] / besoin_n * 100) if besoin_n > 0 else 0
-        couverture_p = (apports['p'] / besoin_p * 100) if besoin_p > 0 else 0
-        couverture_k = (apports['k'] / besoin_k * 100) if besoin_k > 0 else 0
+        # Totaux disponibles
+        total_n = apport_sol['n'] + apport_foliaire['n'] + restitution['n']
+        total_p = apport_sol['p'] + apport_foliaire['p'] + restitution['p']
+        total_k = apport_sol['k'] + apport_foliaire['k'] + restitution['k']
+
+        solde_n = total_n - besoin_n
+        solde_p = total_p - besoin_p
+        solde_k = total_k - besoin_k
+
+        couverture_n = (total_n / besoin_n * 100) if besoin_n > 0 else 0
+        couverture_p = (total_p / besoin_p * 100) if besoin_p > 0 else 0
+        couverture_k = (total_k / besoin_k * 100) if besoin_k > 0 else 0
 
         return {
             'objectif_hl_ha': objectif_hl_ha,
             'besoins': {'n': round(besoin_n, 1), 'p': round(besoin_p, 1), 'k': round(besoin_k, 1)},
-            'apports': apports,
+            'apports': {'n': round(total_n, 1), 'p': round(total_p, 1), 'k': round(total_k, 1)},
+            'breakdown': {
+                'sol': apport_sol,
+                'foliaire': apport_foliaire,
+                'sarments': restitution
+            },
             'soldes': {'n': round(solde_n, 1), 'p': round(solde_p, 1), 'k': round(solde_k, 1)},
             'couverture_pct': {'n': round(couverture_n, 1), 'p': round(couverture_p, 1), 'k': round(couverture_k, 1)}
         }

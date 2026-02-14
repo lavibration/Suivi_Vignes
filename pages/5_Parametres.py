@@ -61,6 +61,8 @@ if selected_tab == tab_titles[0]:
             new_cepages = st.text_input("Cépages (séparés par des virgules) *", placeholder="Ex: Grenache, Syrah")
             new_rfu_max = st.number_input("RFU Max (mm)", min_value=10.0, value=100.0, step=1.0)
             new_obj_rdt = st.number_input("Objectif Rendement (hl/ha)", min_value=0.0, value=50.0, step=1.0)
+            new_broyage = st.toggle("Broyage des Sarments", value=True)
+            st.info("💡 Hypothèse conservatrice (70% de restitution)")
 
             submit_add = st.form_submit_button("Ajouter la Parcelle", type="primary")
 
@@ -74,14 +76,15 @@ if selected_tab == tab_titles[0]:
                         "stade_actuel": "repos",
                         "date_debourrement": None,
                         "rfu_max_mm": new_rfu_max,
-                        "objectif_rdt": new_obj_rdt
+                        "objectif_rdt": new_obj_rdt,
+                        "broyage_sarments": new_broyage
                     }
                     config_vignoble.parcelles.append(new_parcelle)
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.success(f"✅ Parcelle '{new_nom}' ajoutée.")
-                    st.session_state.active_tab_params = 0
+                    st.session_state.active_tab_params = tab_titles[0]
                     st.rerun()
                 else:
                     st.error("⚠️ Veuillez remplir tous les champs obligatoires.")
@@ -98,6 +101,8 @@ if selected_tab == tab_titles[0]:
                 edit_cepages = st.text_input("Cépages", value=", ".join(parcelle_to_edit['cepages']))
                 edit_rfu_max = st.number_input("RFU Max (mm)", min_value=10.0, value=float(parcelle_to_edit.get('rfu_max_mm', 100.0)), step=1.0)
                 edit_obj_rdt = st.number_input("Objectif Rendement (hl/ha)", min_value=0.0, value=float(parcelle_to_edit.get('objectif_rdt', 50.0)), step=1.0)
+                edit_broyage = st.toggle("Broyage des Sarments", value=bool(parcelle_to_edit.get('broyage_sarments', False)))
+                st.info("💡 Hypothèse conservatrice (70% de restitution)")
 
                 col_btn1, col_btn2 = st.columns(2)
                 submit_edit = col_btn1.form_submit_button("Sauvegarder", use_container_width=True)
@@ -109,11 +114,12 @@ if selected_tab == tab_titles[0]:
                     parcelle_to_edit['cepages'] = [c.strip() for c in edit_cepages.split(',')]
                     parcelle_to_edit['rfu_max_mm'] = edit_rfu_max
                     parcelle_to_edit['objectif_rdt'] = edit_obj_rdt
+                    parcelle_to_edit['broyage_sarments'] = edit_broyage
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.success("✅ Modifications enregistrées.")
-                    st.session_state.active_tab_params = 0
+                    st.session_state.active_tab_params = tab_titles[0]
                     st.rerun()
 
                 if submit_del:
@@ -122,7 +128,7 @@ if selected_tab == tab_titles[0]:
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.warning(f"🗑️ Parcelle '{nom_edit}' supprimée.")
-                    st.session_state.active_tab_params = 0
+                    st.session_state.active_tab_params = tab_titles[0]
                     st.rerun()
         else:
             st.info("Aucune parcelle à modifier.")
@@ -146,7 +152,7 @@ if selected_tab == tab_titles[0]:
         st.cache_resource.clear()
         st.cache_data.clear()
         st.success("✅ Paramètres généraux sauvegardés.")
-        st.session_state.active_tab_params = 0
+        st.session_state.active_tab_params = tab_titles[0]
         st.rerun()
 
 # ==============================================================================
@@ -223,7 +229,7 @@ elif selected_tab == tab_titles[1]:
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.success(f"✅ Produit '{p_nom}' ajouté.")
-                    st.session_state.active_tab_params = 1
+                    st.session_state.active_tab_params = tab_titles[1]
                     st.rerun()
                 else:
                     st.error("⚠️ Le nom commercial est obligatoire.")
@@ -290,7 +296,7 @@ elif selected_tab == tab_titles[1]:
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.success("✅ Modifications enregistrées.")
-                    st.session_state.active_tab_params = 1
+                    st.session_state.active_tab_params = tab_titles[1]
                     st.rerun()
 
                 if submit_pe_del:
@@ -300,7 +306,7 @@ elif selected_tab == tab_titles[1]:
                     st.cache_resource.clear()
                     st.cache_data.clear()
                     st.warning(f"🗑️ Produit '{p_select_nom}' supprimé.")
-                    st.session_state.active_tab_params = 1
+                    st.session_state.active_tab_params = tab_titles[1]
                     st.rerun()
         else:
             st.info("Aucun produit à modifier.")
@@ -343,5 +349,5 @@ elif selected_tab == tab_titles[2]:
             st.cache_resource.clear()
             st.cache_data.clear()
             st.success(f"✅ Coefficients mis à jour pour {c_selected}.")
-            st.session_state.active_tab_params = 2
+            st.session_state.active_tab_params = tab_titles[2]
             st.rerun()
