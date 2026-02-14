@@ -334,18 +334,32 @@ except:
 campagne_active = vendanges.get_campagne_active()
 annee_active = campagne_active['annee']
 
-# Onglets principaux
-tab1, tab2, tab3, tab4 = st.tabs([
+# Gérer la navigation par onglets via session_state pour éviter les resets
+tab_titles = [
     "📝 Saisie Tickets",
     "📊 Suivi Campagnes",
     "📈 Dashboard",
     "📑 Historique & Import"
-])
+]
+
+if "active_tab_vendanges" not in st.session_state:
+    st.session_state.active_tab_vendanges = tab_titles[0]
+
+selected_tab = st.radio(
+    "Navigation",
+    tab_titles,
+    index=tab_titles.index(st.session_state.active_tab_vendanges),
+    horizontal=True,
+    label_visibility="collapsed"
+)
+st.session_state.active_tab_vendanges = selected_tab
+
+st.markdown("---")
 
 # ========================================
 # TAB 1 : SAISIE TICKETS
 # ========================================
-with tab1:
+if selected_tab == tab_titles[0]:
     st.subheader("📝 Saisie des Tickets de Vendange")
 
     st.info(f"💡 Les tickets sont automatiquement affectés à la campagne correspondant à leur date.")
@@ -477,7 +491,7 @@ with tab1:
 # ========================================
 # TAB 2 : SUIVI CAMPAGNES
 # ========================================
-with tab2:
+elif selected_tab == tab_titles[1]:
     st.subheader("📊 Suivi des Campagnes")
 
     # Sélecteur de campagne
@@ -748,7 +762,7 @@ with tab2:
 # ========================================
 # TAB 3 : DASHBOARD GRAPHIQUES
 # ========================================
-with tab3:
+elif selected_tab == tab_titles[2]:
     col_title, col_refresh = st.columns([3, 1])
     with col_title:
         st.subheader("📈 Dashboard Historique")
@@ -876,7 +890,7 @@ with tab3:
 # ========================================
 # TAB 4 : HISTORIQUE & IMPORT
 # ========================================
-with tab4:
+elif selected_tab == tab_titles[3]:
     st.subheader("📑 Historique & Import Données")
 
     # Section gestion de l'historique

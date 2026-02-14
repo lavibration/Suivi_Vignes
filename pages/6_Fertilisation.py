@@ -30,12 +30,20 @@ try:
     # On utilise directement GestionFertilisation
     gestion_fert = GestionFertilisation()
 
-    tab1, tab2, tab3 = st.tabs(["➕ Nouvel Apport", "📊 Historique et Suivi", "🎯 Pilotage & Objectifs"])
+    # Gérer la navigation par onglets via session_state
+    tab_titles = ["➕ Nouvel Apport", "📊 Historique et Suivi", "🎯 Pilotage & Objectifs"]
+    if "active_tab_fert" not in st.session_state:
+        st.session_state.active_tab_fert = tab_titles[0]
+
+    selected_tab = st.radio("Navigation", tab_titles, index=tab_titles.index(st.session_state.active_tab_fert), horizontal=True, label_visibility="collapsed")
+    st.session_state.active_tab_fert = selected_tab
+
+    st.markdown("---")
 
     # ==============================================================================
     # TAB 1 : NOUVEL APPORT
     # ==============================================================================
-    with tab1:
+    if selected_tab == tab_titles[0]:
         st.subheader("📝 Enregistrer un apport (Sol ou Foliaire)")
 
         col_form, col_info = st.columns([2, 1])
@@ -77,8 +85,10 @@ try:
                             produit_info=produit_info,
                             quantite_ha=qty
                         )
-                        st.success(f"✅ Apport enregistré : {apport['u_n']} unités N, {apport['u_p']} unités P, {apport['u_k']} unités K.")
                         st.cache_resource.clear()
+                        st.cache_data.clear()
+                        st.success(f"✅ Apport enregistré : {apport['u_n']} unités N, {apport['u_p']} unités P, {apport['u_k']} unités K.")
+                        st.session_state.active_tab_fert = tab_titles[1] # Aller à l'historique
                         st.rerun()
                     else:
                         st.error("⚠️ La quantité doit être supérieure à 0.")
@@ -99,7 +109,7 @@ try:
     # ==============================================================================
     # TAB 2 : HISTORIQUE ET SUIVI
     # ==============================================================================
-    with tab2:
+    elif selected_tab == tab_titles[1]:
         st.subheader("📊 Récapitulatif Annuel par Parcelle")
 
         annee_sel = st.selectbox("Année", sorted(list(set([datetime.strptime(a['date'], '%Y-%m-%d').year for a in gestion_fert.donnees['apports']] + [datetime.now().year])), reverse=True))
@@ -175,7 +185,7 @@ try:
     # ==============================================================================
     # TAB 3 : PILOTAGE & OBJECTIFS
     # ==============================================================================
-    with tab3:
+    elif selected_tab == tab_titles[2]:
         st.subheader("🎯 Pilotage des Besoins Nutritionnels")
 
         # Sélection parcelle

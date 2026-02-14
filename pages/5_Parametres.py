@@ -24,12 +24,22 @@ storage = DataManager()
 config_vignoble = ConfigVignoble()
 gestion_traitements = GestionTraitements()
 
-tab1, tab2, tab3 = st.tabs(["🍇 Configuration Vignoble", "💊 Liste Produits", "🌾 Besoins Cépages"])
+# Gérer la navigation par onglets via session_state
+tab_titles = ["🍇 Configuration Vignoble", "💊 Liste Produits", "🌾 Besoins Cépages"]
+
+if "active_tab_params" not in st.session_state:
+    st.session_state.active_tab_params = tab_titles[0]
+
+# Utiliser une radio horizontale pour simuler des onglets persistants
+selected_tab = st.radio("Navigation", tab_titles, index=tab_titles.index(st.session_state.active_tab_params), horizontal=True, label_visibility="collapsed")
+st.session_state.active_tab_params = selected_tab
+
+st.markdown("---")
 
 # ==============================================================================
 # TAB 1 : CONFIGURATION VIGNOBLE
 # ==============================================================================
-with tab1:
+if selected_tab == tab_titles[0]:
     st.subheader("📍 Gestion des Parcelles")
 
     parcelles = config_vignoble.parcelles
@@ -69,7 +79,9 @@ with tab1:
                     config_vignoble.parcelles.append(new_parcelle)
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.success(f"✅ Parcelle '{new_nom}' ajoutée.")
+                    st.session_state.active_tab_params = 0
                     st.rerun()
                 else:
                     st.error("⚠️ Veuillez remplir tous les champs obligatoires.")
@@ -99,14 +111,18 @@ with tab1:
                     parcelle_to_edit['objectif_rdt'] = edit_obj_rdt
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.success("✅ Modifications enregistrées.")
+                    st.session_state.active_tab_params = 0
                     st.rerun()
 
                 if submit_del:
                     config_vignoble.parcelles = [p for p in config_vignoble.parcelles if p['nom'] != nom_edit]
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.warning(f"🗑️ Parcelle '{nom_edit}' supprimée.")
+                    st.session_state.active_tab_params = 0
                     st.rerun()
         else:
             st.info("Aucune parcelle à modifier.")
@@ -128,12 +144,15 @@ with tab1:
         config_vignoble.parametres['rfu_max_mm_default'] = rfu_def
         config_vignoble.sauvegarder_config()
         st.cache_resource.clear()
+        st.cache_data.clear()
         st.success("✅ Paramètres généraux sauvegardés.")
+        st.session_state.active_tab_params = 0
+        st.rerun()
 
 # ==============================================================================
 # TAB 2 : LISTE PRODUITS
 # ==============================================================================
-with tab2:
+elif selected_tab == tab_titles[1]:
     st.subheader("🧪 Gestion des Produits (Phyto, Engrais, etc.)")
 
     # Charger les produits
@@ -202,7 +221,9 @@ with tab2:
                     data['produits'].append(new_produit)
                     storage.save_data('produits', data)
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.success(f"✅ Produit '{p_nom}' ajouté.")
+                    st.session_state.active_tab_params = 1
                     st.rerun()
                 else:
                     st.error("⚠️ Le nom commercial est obligatoire.")
@@ -267,7 +288,9 @@ with tab2:
                             break
                     storage.save_data('produits', data)
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.success("✅ Modifications enregistrées.")
+                    st.session_state.active_tab_params = 1
                     st.rerun()
 
                 if submit_pe_del:
@@ -275,7 +298,9 @@ with tab2:
                     data['produits'] = [p for p in data['produits'] if (p.get('id') != p_to_edit.get('id') and p.get('nom') != p_select_nom)]
                     storage.save_data('produits', data)
                     st.cache_resource.clear()
+                    st.cache_data.clear()
                     st.warning(f"🗑️ Produit '{p_select_nom}' supprimé.")
+                    st.session_state.active_tab_params = 1
                     st.rerun()
         else:
             st.info("Aucun produit à modifier.")
@@ -283,11 +308,11 @@ with tab2:
 # ==============================================================================
 # TAB 3 : BESOINS CEPAGES
 # ==============================================================================
-with tab3:
+elif selected_tab == tab_titles[2]:
     st.subheader("🌾 Coefficients d'Exportation par Cépage")
     st.info("Définit les unités de N, P, K exportées par hectolitre produit.")
 
-    export_coefs = config_vignoble.parametres.get('export_coefs', {})
+    export_coefs = config_vignoble.export_coefs
 
     # S'assurer que tous les cépages connus sont là
     all_known_cepages = list(config_vignoble.SENSIBILITES_CEPAGES.keys())
@@ -314,8 +339,9 @@ with tab3:
 
         if st.form_submit_button("Sauvegarder Coefficients"):
             export_coefs[c_selected] = {'n': new_c_n, 'p': new_c_p, 'k': new_c_k}
-            config_vignoble.parametres['export_coefs'] = export_coefs
-            config_vignoble.sauvegarder_config()
+            storage.save_data('besoins', export_coefs)
             st.cache_resource.clear()
+            st.cache_data.clear()
             st.success(f"✅ Coefficients mis à jour pour {c_selected}.")
+            st.session_state.active_tab_params = 2
             st.rerun()
