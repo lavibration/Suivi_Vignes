@@ -1,0 +1,16 @@
+{
+  "apports": [
+    {
+      "parcelle": "Fate",
+      "date": "2025-05-01",
+      "produit_id": "engrais_8_4_12",
+      "produit_nom": "Engrais 8-4-12",
+      "quantite_ha": 300.0,
+      "u_n": 24.0,
+      "u_p": 12.0,
+      "u_k": 36.0,
+      "bio": false,
+      "type_application": "Sol"
+    }
+  ]
+}
