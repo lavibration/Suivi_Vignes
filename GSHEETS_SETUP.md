@@ -12,6 +12,7 @@ Cette application peut maintenant utiliser une Google Sheet comme base de donné
    - `gdd`
    - `config`
    - `produits`
+   - `fertilisation`
 
 ## 2. Configurer l'accès API
 Il est recommandé d'utiliser une **Service Account** pour permettre à Streamlit d'écrire dans la feuille.
