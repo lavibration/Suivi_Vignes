@@ -36,11 +36,18 @@ try:
     if hasattr(systeme.traitements, 'charger_produits'):
         systeme.traitements.FONGICIDES = systeme.traitements.charger_produits()
 
-    # Onglets
-    tab1, tab2, tab3 = st.tabs(["➕ Ajouter un Traitement", "📋 Registre & Historique", "📊 Statistiques"])
+    # Gérer la navigation par onglets via session_state pour éviter les resets
+    tab_titles = ["➕ Ajouter un Traitement", "📋 Registre & Historique", "📊 Statistiques"]
+    if "active_tab_traitements" not in st.session_state:
+        st.session_state.active_tab_traitements = tab_titles[0]
+
+    selected_tab = st.radio("Navigation", tab_titles, index=tab_titles.index(st.session_state.active_tab_traitements), horizontal=True, label_visibility="collapsed")
+    st.session_state.active_tab_traitements = selected_tab
+
+    st.markdown("---")
 
     # TAB 1 : Ajouter traitement
-    with tab1:
+    if selected_tab == tab_titles[0]:
         st.subheader("Enregistrer un Nouveau Traitement (Données Légales)")
 
         col_form1, col_form2 = st.columns([2, 1])
@@ -178,7 +185,7 @@ try:
             """)
 
     # TAB 2 : Registre & Historique
-    with tab2:
+    elif selected_tab == tab_titles[1]:
         st.subheader("📋 Registre Phytosanitaire Officiel")
 
         traitements = systeme.traitements.historique.get('traitements', [])
@@ -243,7 +250,7 @@ try:
             st.info("📝 Aucun traitement enregistré")
 
     # TAB 3 : Statistiques
-    with tab3:
+    elif selected_tab == tab_titles[2]:
         st.subheader("📊 Statistiques & IFT")
         # Garder la logique de stats existante (simplifiée ici pour la démo)
         traitements = systeme.traitements.historique.get('traitements', [])

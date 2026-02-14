@@ -51,7 +51,8 @@ class DataManager:
         if self.use_gsheets:
             try:
                 tab_name = self._get_tab_name(key)
-                df = self.conn.read(worksheet=tab_name)
+                # Utiliser ttl=0 pour éviter les données périmées après une modification
+                df = self.conn.read(worksheet=tab_name, ttl=0)
 
                 # Check if empty
                 is_empty = df is None or len(df) == 0 or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
@@ -101,7 +102,8 @@ class DataManager:
             'vendanges': 'vendanges',
             'config_vignoble': 'config',
             'produits': 'produits',
-            'fertilisation': 'fertilisation'
+            'fertilisation': 'fertilisation',
+            'besoins': 'besoins'
         }
         return mapping.get(key, key)
 
@@ -129,6 +131,12 @@ class DataManager:
 
         if key == 'produits':
             return {'produits': df.to_dict(orient='records')}
+
+        if key == 'besoins':
+            # Format attendu: {'Cépage': {'n': 1.0, 'p': 0.4, 'k': 1.3}, ...}
+            if 'Cépage' in df.columns:
+                return df.set_index('Cépage').to_dict(orient='index')
+            return {}
 
         if key == 'fertilisation':
             return {'apports': df.to_dict(orient='records')}
@@ -242,6 +250,15 @@ class DataManager:
         if key == 'produits':
             return pd.DataFrame(data.get('produits', []))
 
+        if key == 'besoins':
+            # data est un dict {cepage: {n, p, k}}
+            rows = []
+            for cepage, coefs in data.items():
+                row = {'Cépage': cepage}
+                row.update(coefs)
+                rows.append(row)
+            return pd.DataFrame(rows)
+
         if key == 'fertilisation':
             return pd.DataFrame(data.get('apports', []))
 
@@ -335,6 +352,7 @@ class DataManager:
             'vendanges': {'campagnes': []},
             'config_vignoble': {},
             'produits': {'produits': []},
-            'fertilisation': {'apports': []}
+            'fertilisation': {'apports': []},
+            'besoins': {}
         }
         return defaults.get(key, {})

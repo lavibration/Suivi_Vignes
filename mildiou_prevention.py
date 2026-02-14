@@ -80,6 +80,13 @@ class ConfigVignoble:
                     self.parametres[key] = value
 
             self.surface_totale = sum(p['surface_ha'] for p in self.parcelles)
+
+            # Charger les coefficients d'exportation depuis l'onglet dédié
+            self.export_coefs = self.storage.load_data('besoins', default_factory=dict)
+            if not self.export_coefs:
+                # Fallback sur les paramètres si l'onglet est vide
+                self.export_coefs = self.parametres.get('export_coefs', {})
+
             print(f"✅ Configuration chargée via DataManager")
         else:
             print(f"⚠️ Configuration non trouvée. Création par défaut.")
@@ -750,7 +757,7 @@ class GestionFertilisation:
         cepages = parcelle.get('cepages', [])
 
         # Calculer le coefficient moyen pondéré par cépage
-        all_coefs = config_vignoble.parametres.get('export_coefs', {})
+        all_coefs = config_vignoble.export_coefs
 
         sum_n, sum_p, sum_k = 0, 0, 0
         count = 0
