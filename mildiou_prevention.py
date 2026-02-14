@@ -68,6 +68,8 @@ class ConfigVignoble:
                     p['date_debourrement'] = None
                 if 'rfu_max_mm' not in p:
                     p['rfu_max_mm'] = config.get('parametres', {}).get('rfu_max_mm_default', 100.0)
+                if 'objectif_rdt' not in p:
+                    p['objectif_rdt'] = 50.0 # hl/ha par défaut
 
             self.parcelles = config['parcelles']
 
@@ -85,6 +87,7 @@ class ConfigVignoble:
 
     def get_default_parameters(self):
         """Retourne les paramètres par défaut pour GDD et Bilan Hydrique"""
+        default_export = {'n': 1.0, 'p': 0.4, 'k': 1.3}
         return {
             "t_base_gdd": 10.0,
             "f_runoff": 0.1,
@@ -100,6 +103,9 @@ class ConfigVignoble:
                 "9": 0.6,  # Kc pour Septembre
                 "10": 0.4,
                 "11": 0.2, "12": 0.1
+            },
+            "export_coefs": {
+                cepage: default_export.copy() for cepage in self.SENSIBILITES_CEPAGES
             }
         }
 
@@ -112,11 +118,13 @@ class ConfigVignoble:
             "parcelles": [
                 {
                     "nom": "Parcelle 1", "surface_ha": 1.5, "cepages": ["Grenache", "Syrah"],
-                    "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0
+                    "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0,
+                    "objectif_rdt": 50.0
                 },
                 {
                     "nom": "Parcelle 2", "surface_ha": 1.5, "cepages": ["Mourvèdre"],
-                    "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0
+                    "stade_actuel": "repos", "date_debourrement": None, "rfu_max_mm": 100.0,
+                    "objectif_rdt": 50.0
                 }
             ],
             "parametres": self.get_default_parameters()
@@ -731,6 +739,59 @@ class GestionFertilisation:
             bilan[p]['k'] = round(bilan[p]['k'], 1)
 
         return bilan
+
+    def calculer_bilan_pilotage(self, parcelle_nom: str, annee: int, config_vignoble: 'ConfigVignoble') -> Dict:
+        """Calcule les besoins théoriques et le solde pour une parcelle"""
+        parcelle = next((p for p in config_vignoble.parcelles if p['nom'] == parcelle_nom), None)
+        if not parcelle:
+            return {}
+
+        objectif_hl_ha = parcelle.get('objectif_rdt', 50.0)
+        cepages = parcelle.get('cepages', [])
+
+        # Calculer le coefficient moyen pondéré par cépage
+        all_coefs = config_vignoble.parametres.get('export_coefs', {})
+
+        sum_n, sum_p, sum_k = 0, 0, 0
+        count = 0
+        for c in cepages:
+            coef = all_coefs.get(c, {'n': 1.0, 'p': 0.4, 'k': 1.3})
+            sum_n += coef['n']
+            sum_p += coef['p']
+            sum_k += coef['k']
+            count += 1
+
+        if count > 0:
+            avg_coef_n = sum_n / count
+            avg_coef_p = sum_p / count
+            avg_coef_k = sum_k / count
+        else:
+            avg_coef_n, avg_coef_p, avg_coef_k = 1.0, 0.4, 1.3
+
+        # Besoin théorique (Unités/Ha) = Objectif (Hl/Ha) * Coef (Unités/Hl)
+        besoin_n = objectif_hl_ha * avg_coef_n
+        besoin_p = objectif_hl_ha * avg_coef_p
+        besoin_k = objectif_hl_ha * avg_coef_k
+
+        # Récupérer les apports réels de l'année
+        bilan_annuel = self.get_bilan_annuel(annee)
+        apports = bilan_annuel.get(parcelle_nom, {'n': 0, 'p': 0, 'k': 0})
+
+        solde_n = apports['n'] - besoin_n
+        solde_p = apports['p'] - besoin_p
+        solde_k = apports['k'] - besoin_k
+
+        couverture_n = (apports['n'] / besoin_n * 100) if besoin_n > 0 else 0
+        couverture_p = (apports['p'] / besoin_p * 100) if besoin_p > 0 else 0
+        couverture_k = (apports['k'] / besoin_k * 100) if besoin_k > 0 else 0
+
+        return {
+            'objectif_hl_ha': objectif_hl_ha,
+            'besoins': {'n': round(besoin_n, 1), 'p': round(besoin_p, 1), 'k': round(besoin_k, 1)},
+            'apports': apports,
+            'soldes': {'n': round(solde_n, 1), 'p': round(solde_p, 1), 'k': round(solde_k, 1)},
+            'couverture_pct': {'n': round(couverture_n, 1), 'p': round(couverture_p, 1), 'k': round(couverture_k, 1)}
+        }
 
 
 class GestionHistoriqueAlertes:

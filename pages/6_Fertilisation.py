@@ -30,7 +30,7 @@ try:
     # On utilise directement GestionFertilisation
     gestion_fert = GestionFertilisation()
 
-    tab1, tab2 = st.tabs(["➕ Nouvel Apport", "📊 Historique et Suivi"])
+    tab1, tab2, tab3 = st.tabs(["➕ Nouvel Apport", "📊 Historique et Suivi", "🎯 Pilotage & Objectifs"])
 
     # ==============================================================================
     # TAB 1 : NOUVEL APPORT
@@ -171,6 +171,96 @@ try:
                     st.rerun()
         else:
             st.info("Aucun historique disponible.")
+
+    # ==============================================================================
+    # TAB 3 : PILOTAGE & OBJECTIFS
+    # ==============================================================================
+    with tab3:
+        st.subheader("🎯 Pilotage des Besoins Nutritionnels")
+
+        # Sélection parcelle
+        parcelle_pilot = st.selectbox("📍 Sélectionner une parcelle pour le pilotage", [p['nom'] for p in systeme.config.parcelles], key="sel_pilot")
+        annee_pilot = st.selectbox("Année", sorted(list(set([datetime.strptime(a['date'], '%Y-%m-%d').year for a in gestion_fert.donnees['apports']] + [datetime.now().year])), reverse=True), key="annee_pilot")
+
+        # Calcul du bilan
+        bilan_pilot = gestion_fert.calculer_bilan_pilotage(parcelle_pilot, annee_pilot, systeme.config)
+
+        if not bilan_pilot:
+            st.warning("⚠️ Impossible de calculer le bilan de pilotage.")
+        else:
+            obj = bilan_pilot['objectif_hl_ha']
+            besoins = bilan_pilot['besoins']
+            apports = bilan_pilot['apports']
+            soldes = bilan_pilot['soldes']
+            couv = bilan_pilot['couverture_pct']
+
+            st.markdown(f"**Objectif de Production :** {obj} hl/ha")
+
+            # --- GAUGES ---
+            col_g1, col_g2, col_g3 = st.columns(3)
+
+            def create_gauge(val, name, color):
+                fig = go.Figure(go.Indicator(
+                    mode = "gauge+number",
+                    value = val,
+                    title = {'text': f"Couverture {name} (%)"},
+                    domain = {'x': [0, 1], 'y': [0, 1]},
+                    gauge = {
+                        'axis': {'range': [0, 150]},
+                        'bar': {'color': color},
+                        'steps': [
+                            {'range': [0, 80], 'color': "rgba(255, 0, 0, 0.1)"},
+                            {'range': [80, 120], 'color': "rgba(0, 255, 0, 0.1)"},
+                            {'range': [120, 150], 'color': "rgba(255, 165, 0, 0.1)"}
+                        ],
+                        'threshold': {
+                            'line': {'color': "black", 'width': 4},
+                            'thickness': 0.75,
+                            'value': 100
+                        }
+                    }
+                ))
+                fig.update_layout(height=250, margin=dict(l=20, r=20, t=50, b=20), template="plotly_dark")
+                return fig
+
+            col_g1.plotly_chart(create_gauge(couv['n'], "N (Azote)", "#2ca02c"), use_container_width=True)
+            col_g2.plotly_chart(create_gauge(couv['p'], "P (Phosphore)", "#ff7f0e"), use_container_width=True)
+            col_g3.plotly_chart(create_gauge(couv['k'], "K (Potasse)", "#1f77b4"), use_container_width=True)
+
+            # --- DETAILS TABLE ---
+            st.markdown("### 📋 Détail du Bilan (Unités / Ha)")
+            data_pilot = [
+                {'Élément': 'N (Azote)', 'Besoin': besoins['n'], 'Apporté': apports['n'], 'Solde': soldes['n'], 'Couverture': f"{couv['n']}%"},
+                {'Élément': 'P (Phosphore)', 'Besoin': besoins['p'], 'Apporté': apports['p'], 'Solde': soldes['p'], 'Couverture': f"{couv['p']}%"},
+                {'Élément': 'K (Potasse)', 'Besoin': besoins['k'], 'Apporté': apports['k'], 'Solde': soldes['k'], 'Couverture': f"{couv['k']}%"}
+            ]
+            st.table(pd.DataFrame(data_pilot))
+
+            # --- ALERTS ---
+            st.markdown("### ⚠️ Alertes de Pilotage")
+
+            alerts_found = False
+
+            # Alerte N > 120% (spécial Grenache)
+            parcelle_obj = next(p for p in systeme.config.parcelles if p['nom'] == parcelle_pilot)
+            if couv['n'] > 120:
+                if "Grenache" in parcelle_obj['cepages']:
+                    st.error(f"🔴 **ALERTE VIGUEUR EXTRÊME (Grenache) :** Couverture Azote à {couv['n']}%. Risque élevé de coulure et de sensibilité aux maladies.")
+                    alerts_found = True
+                else:
+                    st.warning(f"🟠 **Surplus Azote :** Couverture à {couv['n']}%. Surveillez la vigueur de la végétation.")
+                    alerts_found = True
+
+            # Alerte K < 50% pour gros objectifs
+            if couv['k'] < 50 and obj >= 60:
+                st.error(f"🔴 **ALERTE CARENCE POTASSE :** Couverture K à {couv['k']}% pour un objectif ambitieux de {obj} hl/ha. Risque de blocage de maturité.")
+                alerts_found = True
+            elif couv['k'] < 50:
+                st.warning(f"🟠 **Carence Potasse potentielle :** Couverture K à {couv['k']}%.")
+                alerts_found = True
+
+            if not alerts_found:
+                st.success("✅ Équilibre nutritionnel satisfaisant.")
 
 except Exception as e:
     st.error(f"❌ Erreur : {str(e)}")

@@ -24,7 +24,7 @@ storage = DataManager()
 config_vignoble = ConfigVignoble()
 gestion_traitements = GestionTraitements()
 
-tab1, tab2 = st.tabs(["🍇 Configuration Vignoble", "💊 Liste Produits"])
+tab1, tab2, tab3 = st.tabs(["🍇 Configuration Vignoble", "💊 Liste Produits", "🌾 Besoins Cépages"])
 
 # ==============================================================================
 # TAB 1 : CONFIGURATION VIGNOBLE
@@ -50,6 +50,7 @@ with tab1:
             new_surface = st.number_input("Surface (ha) *", min_value=0.0, step=0.01)
             new_cepages = st.text_input("Cépages (séparés par des virgules) *", placeholder="Ex: Grenache, Syrah")
             new_rfu_max = st.number_input("RFU Max (mm)", min_value=10.0, value=100.0, step=1.0)
+            new_obj_rdt = st.number_input("Objectif Rendement (hl/ha)", min_value=0.0, value=50.0, step=1.0)
 
             submit_add = st.form_submit_button("Ajouter la Parcelle", type="primary")
 
@@ -62,7 +63,8 @@ with tab1:
                         "cepages": cepages_list,
                         "stade_actuel": "repos",
                         "date_debourrement": None,
-                        "rfu_max_mm": new_rfu_max
+                        "rfu_max_mm": new_rfu_max,
+                        "objectif_rdt": new_obj_rdt
                     }
                     config_vignoble.parcelles.append(new_parcelle)
                     config_vignoble.sauvegarder_config()
@@ -83,6 +85,7 @@ with tab1:
                 edit_surface = st.number_input("Surface (ha)", min_value=0.0, value=float(parcelle_to_edit['surface_ha']), step=0.01)
                 edit_cepages = st.text_input("Cépages", value=", ".join(parcelle_to_edit['cepages']))
                 edit_rfu_max = st.number_input("RFU Max (mm)", min_value=10.0, value=float(parcelle_to_edit.get('rfu_max_mm', 100.0)), step=1.0)
+                edit_obj_rdt = st.number_input("Objectif Rendement (hl/ha)", min_value=0.0, value=float(parcelle_to_edit.get('objectif_rdt', 50.0)), step=1.0)
 
                 col_btn1, col_btn2 = st.columns(2)
                 submit_edit = col_btn1.form_submit_button("Sauvegarder", use_container_width=True)
@@ -93,6 +96,7 @@ with tab1:
                     parcelle_to_edit['surface_ha'] = edit_surface
                     parcelle_to_edit['cepages'] = [c.strip() for c in edit_cepages.split(',')]
                     parcelle_to_edit['rfu_max_mm'] = edit_rfu_max
+                    parcelle_to_edit['objectif_rdt'] = edit_obj_rdt
                     config_vignoble.sauvegarder_config()
                     st.cache_resource.clear()
                     st.success("✅ Modifications enregistrées.")
@@ -275,3 +279,43 @@ with tab2:
                     st.rerun()
         else:
             st.info("Aucun produit à modifier.")
+
+# ==============================================================================
+# TAB 3 : BESOINS CEPAGES
+# ==============================================================================
+with tab3:
+    st.subheader("🌾 Coefficients d'Exportation par Cépage")
+    st.info("Définit les unités de N, P, K exportées par hectolitre produit.")
+
+    export_coefs = config_vignoble.parametres.get('export_coefs', {})
+
+    # S'assurer que tous les cépages connus sont là
+    all_known_cepages = list(config_vignoble.SENSIBILITES_CEPAGES.keys())
+    for c in all_known_cepages:
+        if c not in export_coefs:
+            export_coefs[c] = {'n': 1.0, 'p': 0.4, 'k': 1.3}
+
+    # Affichage
+    df_coefs = pd.DataFrame.from_dict(export_coefs, orient='index').reset_index()
+    df_coefs.columns = ['Cépage', 'N (Azote)', 'P (Phosphore)', 'K (Potasse)']
+    st.dataframe(df_coefs, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("### 📝 Modifier les Coefficients")
+
+    c_selected = st.selectbox("Sélectionner un cépage à modifier", all_known_cepages)
+    c_coefs = export_coefs.get(c_selected, {'n': 1.0, 'p': 0.4, 'k': 1.3})
+
+    with st.form("form_edit_coefs"):
+        colc1, colc2, colc3 = st.columns(3)
+        new_c_n = colc1.number_input("N / hl", value=float(c_coefs['n']), step=0.1)
+        new_c_p = colc2.number_input("P / hl", value=float(c_coefs['p']), step=0.1)
+        new_c_k = colc3.number_input("K / hl", value=float(c_coefs['k']), step=0.1)
+
+        if st.form_submit_button("Sauvegarder Coefficients"):
+            export_coefs[c_selected] = {'n': new_c_n, 'p': new_c_p, 'k': new_c_k}
+            config_vignoble.parametres['export_coefs'] = export_coefs
+            config_vignoble.sauvegarder_config()
+            st.cache_resource.clear()
+            st.success(f"✅ Coefficients mis à jour pour {c_selected}.")
+            st.rerun()
