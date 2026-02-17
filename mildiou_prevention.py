@@ -96,7 +96,7 @@ class ConfigVignoble:
 
     def get_default_parameters(self):
         """Retourne les paramètres par défaut pour GDD et Bilan Hydrique"""
-        default_export = {'n': 1.0, 'p': 0.4, 'k': 1.3}
+        default_export = {'n': 1.0, 'p': 0.4, 'k': 1.3, 'mgo': 0.2}
         return {
             "t_base_gdd": 10.0,
             "f_runoff": 0.1,
@@ -709,6 +709,7 @@ class GestionFertilisation:
         u_n = quantite_ha * (float(produit_info.get('n', 0)) / 100)
         u_p = quantite_ha * (float(produit_info.get('p', 0)) / 100)
         u_k = quantite_ha * (float(produit_info.get('k', 0)) / 100)
+        u_mgo = quantite_ha * (float(produit_info.get('mgo', 0)) / 100)
 
         apport = {
             'parcelle': parcelle,
@@ -719,6 +720,7 @@ class GestionFertilisation:
             'u_n': round(u_n, 2),
             'u_p': round(u_p, 2),
             'u_k': round(u_k, 2),
+            'u_mgo': round(u_mgo, 2),
             'bio': produit_info.get('bio', False),
             'type_application': produit_info.get('type_application', 'Sol')
         }
@@ -735,10 +737,11 @@ class GestionFertilisation:
             if date_dt.year == annee:
                 p = a['parcelle']
                 if p not in bilan:
-                    bilan[p] = {'n': 0, 'p': 0, 'k': 0, 'nb_passages': 0}
-                bilan[p]['n'] += a['u_n']
-                bilan[p]['p'] += a['u_p']
-                bilan[p]['k'] += a['u_k']
+                    bilan[p] = {'n': 0, 'p': 0, 'k': 0, 'mgo': 0, 'nb_passages': 0}
+                bilan[p]['n'] += a.get('u_n', 0)
+                bilan[p]['p'] += a.get('u_p', 0)
+                bilan[p]['k'] += a.get('u_k', 0)
+                bilan[p]['mgo'] += a.get('u_mgo', 0)
                 bilan[p]['nb_passages'] += 1
 
         # Arrondir les résultats
@@ -746,20 +749,22 @@ class GestionFertilisation:
             bilan[p]['n'] = round(bilan[p]['n'], 1)
             bilan[p]['p'] = round(bilan[p]['p'], 1)
             bilan[p]['k'] = round(bilan[p]['k'], 1)
+            bilan[p]['mgo'] = round(bilan[p]['mgo'], 1)
 
         return bilan
 
     def get_bilan_detaille(self, annee: int, parcelle_nom: str) -> Dict:
         """Retourne le bilan N-P-K détaillé (Sol vs Foliaire)"""
-        detail = {'sol': {'n': 0, 'p': 0, 'k': 0}, 'foliaire': {'n': 0, 'p': 0, 'k': 0}}
+        detail = {'sol': {'n': 0, 'p': 0, 'k': 0, 'mgo': 0}, 'foliaire': {'n': 0, 'p': 0, 'k': 0, 'mgo': 0}}
         for a in self.donnees['apports']:
             date_dt = datetime.strptime(a['date'], '%Y-%m-%d')
             if date_dt.year == annee and a['parcelle'] == parcelle_nom:
                 t = a.get('type_application', 'Sol').lower()
-                if t not in detail: detail[t] = {'n': 0, 'p': 0, 'k': 0}
-                detail[t]['n'] += a['u_n']
-                detail[t]['p'] += a['u_p']
-                detail[t]['k'] += a['u_k']
+                if t not in detail: detail[t] = {'n': 0, 'p': 0, 'k': 0, 'mgo': 0}
+                detail[t]['n'] += a.get('u_n', 0)
+                detail[t]['p'] += a.get('u_p', 0)
+                detail[t]['k'] += a.get('u_k', 0)
+                detail[t]['mgo'] += a.get('u_mgo', 0)
 
         for t in detail:
             for k in detail[t]:
@@ -778,62 +783,72 @@ class GestionFertilisation:
         # Calculer le coefficient moyen pondéré par cépage
         all_coefs = config_vignoble.export_coefs
 
-        sum_n, sum_p, sum_k = 0, 0, 0
+        sum_n, sum_p, sum_k, sum_mgo = 0, 0, 0, 0
         count = 0
         for c in cepages:
-            coef = all_coefs.get(c, {'n': 1.0, 'p': 0.4, 'k': 1.3})
-            sum_n += coef['n']
-            sum_p += coef['p']
-            sum_k += coef['k']
+            coef = all_coefs.get(c, {'n': 1.0, 'p': 0.4, 'k': 1.3, 'mgo': 0.2})
+            sum_n += coef.get('n', 0)
+            sum_p += coef.get('p', 0)
+            sum_k += coef.get('k', 0)
+            sum_mgo += coef.get('mgo', 0)
             count += 1
 
         if count > 0:
             avg_coef_n = sum_n / count
             avg_coef_p = sum_p / count
             avg_coef_k = sum_k / count
+            avg_coef_mgo = sum_mgo / count
         else:
-            avg_coef_n, avg_coef_p, avg_coef_k = 1.0, 0.4, 1.3
+            avg_coef_n, avg_coef_p, avg_coef_k, avg_coef_mgo = 1.0, 0.4, 1.3, 0.2
 
         # Besoin théorique (Unités/Ha) = Objectif (Hl/Ha) * Coef (Unités/Hl)
         besoin_n = objectif_hl_ha * avg_coef_n
         besoin_p = objectif_hl_ha * avg_coef_p
         besoin_k = objectif_hl_ha * avg_coef_k
+        besoin_mgo = objectif_hl_ha * avg_coef_mgo
 
         # Récupérer les apports réels de l'année (Breakdown Sol/Foliaire)
         apports_detail = self.get_bilan_detaille(annee, parcelle_nom)
         apport_sol = apports_detail.get('sol', {'n': 0, 'p': 0, 'k': 0})
         apport_foliaire = apports_detail.get('foliaire', {'n': 0, 'p': 0, 'k': 0})
 
-        # Crédit sarments (hypothèse conservatrice)
+        # Récupérer les apports réels de l'année (Unités réelles)
+        apport_sol_mgo = apport_sol.get('mgo', 0.0) # On s'assure que mgo est là
+        apport_foliaire_mgo = apport_foliaire.get('mgo', 0.0)
+
+        # Crédit sarments (hypothèse conservatrice mise à jour)
         restitution = {'n': 0, 'p': 0, 'k': 0, 'mgo': 0}
         if parcelle.get('broyage_sarments', False):
-            # K: +21, P: +3.5, MgO: +3.5, N: +0
-            restitution = {'n': 0.0, 'p': 3.5, 'k': 21.0, 'mgo': 3.5}
+            # N: 6, P: 2, K: 8, MgO: 1
+            restitution = {'n': 6.0, 'p': 2.0, 'k': 8.0, 'mgo': 1.0}
 
         # Totaux disponibles
         total_n = apport_sol['n'] + apport_foliaire['n'] + restitution['n']
         total_p = apport_sol['p'] + apport_foliaire['p'] + restitution['p']
         total_k = apport_sol['k'] + apport_foliaire['k'] + restitution['k']
+        total_mgo = apport_sol.get('mgo', 0) + apport_foliaire.get('mgo', 0) + restitution['mgo']
 
         solde_n = total_n - besoin_n
         solde_p = total_p - besoin_p
         solde_k = total_k - besoin_k
+        solde_mgo = total_mgo - besoin_mgo
 
         couverture_n = (total_n / besoin_n * 100) if besoin_n > 0 else 0
         couverture_p = (total_p / besoin_p * 100) if besoin_p > 0 else 0
         couverture_k = (total_k / besoin_k * 100) if besoin_k > 0 else 0
+        couverture_mgo = (total_mgo / besoin_mgo * 100) if besoin_mgo > 0 else 0
 
         return {
             'objectif_hl_ha': objectif_hl_ha,
-            'besoins': {'n': round(besoin_n, 1), 'p': round(besoin_p, 1), 'k': round(besoin_k, 1)},
-            'apports': {'n': round(total_n, 1), 'p': round(total_p, 1), 'k': round(total_k, 1)},
+            'besoins': {'n': round(besoin_n, 1), 'p': round(besoin_p, 1), 'k': round(besoin_k, 1), 'mgo': round(besoin_mgo, 1)},
+            'apports': {'n': round(total_n, 1), 'p': round(total_p, 1), 'k': round(total_k, 1), 'mgo': round(total_mgo, 1)},
             'breakdown': {
                 'sol': apport_sol,
                 'foliaire': apport_foliaire,
                 'sarments': restitution
             },
-            'soldes': {'n': round(solde_n, 1), 'p': round(solde_p, 1), 'k': round(solde_k, 1)},
-            'couverture_pct': {'n': round(couverture_n, 1), 'p': round(couverture_p, 1), 'k': round(couverture_k, 1)}
+            'soldes': {'n': round(solde_n, 1), 'p': round(solde_p, 1), 'k': round(solde_k, 1), 'mgo': round(solde_mgo, 1)},
+            'couverture_pct': {'n': round(couverture_n, 1), 'p': round(couverture_p, 1), 'k': round(couverture_k, 1), 'mgo': round(couverture_mgo, 1)}
         }
 
 

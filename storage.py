@@ -45,14 +45,20 @@ class DataManager:
         return default_factory()
 
     def load_data(self, key, default_factory=dict):
-        """Charge les données pour une clé donnée."""
-        json_file = os.path.join(self.script_dir, f"{key}.json")
+        """Charge les données pour une clé donnée (version avec cache Streamlit)."""
+        return self._load_data_cached(key, default_factory)
 
-        if self.use_gsheets:
+    @st.cache_data(ttl="1h")
+    def _load_data_cached(_self, key, default_factory):
+        """Version interne cachée pour éviter les appels redondants."""
+        json_file = os.path.join(_self.script_dir, f"{key}.json")
+
+        if _self.use_gsheets:
             try:
-                tab_name = self._get_tab_name(key)
-                # Utiliser ttl=0 pour éviter les données périmées après une modification
-                df = self.conn.read(worksheet=tab_name, ttl=0)
+                tab_name = _self._get_tab_name(key)
+                # Augmenter le ttl pour éviter l'erreur 429 (Quota Exceeded)
+                # 10 secondes est un bon compromis entre réactivité et quota
+                df = _self.conn.read(worksheet=tab_name, ttl="10s")
 
                 # Check if empty
                 is_empty = df is None or len(df) == 0 or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
@@ -63,18 +69,18 @@ class DataManager:
                         is_empty = True
 
                 if not is_empty:
-                    return self._df_to_json(key, df)
+                    return _self._df_to_json(key, df)
                 else:
                     if os.path.exists(json_file):
-                        local_data = self._load_local_json(json_file, default_factory)
+                        local_data = _self._load_local_json(json_file, default_factory)
                         if local_data and (isinstance(local_data, dict) and (local_data.get('campagnes') or local_data.get('traitements') or len(local_data) > 0)):
                             st.info(f"Migration automatique de '{key}' vers Google Sheets...")
-                            self.save_data(key, local_data)
+                            _self.save_data(key, local_data)
                             return local_data
             except Exception as e:
                 st.error(f"Erreur lors du chargement de '{key}' depuis GSheets: {e}")
 
-        return self._load_local_json(json_file, default_factory)
+        return _self._load_local_json(json_file, default_factory)
 
     def save_data(self, key, data):
         """Sauvegarde les données."""
@@ -90,6 +96,8 @@ class DataManager:
                 tab_name = self._get_tab_name(key)
                 df = self._json_to_df(key, data)
                 self.conn.update(worksheet=tab_name, data=df)
+                # Invalider le cache après une écriture
+                st.cache_data.clear()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde de '{key}' vers GSheets: {e}")
 
