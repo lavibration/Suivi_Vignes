@@ -72,7 +72,7 @@ try:
 
                     qty = st.number_input("⚖️ Quantité par hectare (kg/ha ou L/ha) *", min_value=0.0, value=float(produit_info.get('dose_reference_kg_ha', 0.0)), step=1.0)
 
-                    st.info(f"**Composition :** N:{produit_info.get('n', 0)}% - P:{produit_info.get('p', 0)}% - K:{produit_info.get('k', 0)}% | **Application :** {produit_info.get('type_application', 'Sol')}")
+                    st.info(f"**Composition :** N:{produit_info.get('n', 0)}% - P:{produit_info.get('p', 0)}% - K:{produit_info.get('k', 0)}% - MgO:{produit_info.get('mgo', 0)}% | **Application :** {produit_info.get('type_application', 'Sol')}")
 
                 submit_apport = st.form_submit_button("✅ Enregistrer l'Apport", type="primary", use_container_width=True)
 
@@ -168,6 +168,7 @@ try:
                 'u_n': 'U. N',
                 'u_p': 'U. P',
                 'u_k': 'U. K',
+                'u_mgo': 'U. MgO',
                 'type_application': 'Type',
                 'bio': 'Bio'
             }
@@ -215,8 +216,8 @@ try:
                 'sarments': {'n': 0, 'p': 0, 'k': 0}
             })
 
-            elements = ['N (Azote)', 'P (Phosphore)', 'K (Potasse)']
-            keys = ['n', 'p', 'k']
+            elements = ['N (Azote)', 'P (Phosphore)', 'K (Potasse)', 'MgO (Magnésie)']
+            keys = ['n', 'p', 'k', 'mgo']
 
             fig_bar = go.Figure()
 
@@ -266,7 +267,7 @@ try:
             st.plotly_chart(fig_bar, use_container_width=True)
 
             # --- GAUGES ---
-            col_g1, col_g2, col_g3 = st.columns(3)
+            col_g1, col_g2, col_g3, col_g4 = st.columns(4)
 
             def create_gauge(val, name, color):
                 fig = go.Figure(go.Indicator(
@@ -295,13 +296,15 @@ try:
             col_g1.plotly_chart(create_gauge(couv['n'], "N (Azote)", "#2ca02c"), use_container_width=True)
             col_g2.plotly_chart(create_gauge(couv['p'], "P (Phosphore)", "#ff7f0e"), use_container_width=True)
             col_g3.plotly_chart(create_gauge(couv['k'], "K (Potasse)", "#1f77b4"), use_container_width=True)
+            col_g4.plotly_chart(create_gauge(couv['mgo'], "MgO", "#9467bd"), use_container_width=True)
 
             # --- DETAILS TABLE ---
             st.markdown("### 📋 Détail du Bilan (Unités / Ha)")
             data_pilot = [
                 {'Élément': 'N (Azote)', 'Besoin': besoins['n'], 'Apporté': apports['n'], 'Solde': soldes['n'], 'Couverture': f"{couv['n']}%"},
                 {'Élément': 'P (Phosphore)', 'Besoin': besoins['p'], 'Apporté': apports['p'], 'Solde': soldes['p'], 'Couverture': f"{couv['p']}%"},
-                {'Élément': 'K (Potasse)', 'Besoin': besoins['k'], 'Apporté': apports['k'], 'Solde': soldes['k'], 'Couverture': f"{couv['k']}%"}
+                {'Élément': 'K (Potasse)', 'Besoin': besoins['k'], 'Apporté': apports['k'], 'Solde': soldes['k'], 'Couverture': f"{couv['k']}%"},
+                {'Élément': 'MgO (Magnésie)', 'Besoin': besoins['mgo'], 'Apporté': apports['mgo'], 'Solde': soldes['mgo'], 'Couverture': f"{couv['mgo']}%"}
             ]
             st.table(pd.DataFrame(data_pilot))
 

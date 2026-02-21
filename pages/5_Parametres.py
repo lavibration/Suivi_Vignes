@@ -324,27 +324,34 @@ elif selected_tab == tab_titles[2]:
     all_known_cepages = list(config_vignoble.SENSIBILITES_CEPAGES.keys())
     for c in all_known_cepages:
         if c not in export_coefs:
-            export_coefs[c] = {'n': 1.0, 'p': 0.4, 'k': 1.3}
+            export_coefs[c] = {'n': 1.0, 'p': 0.4, 'k': 1.3, 'mgo': 0.2}
 
     # Affichage
     df_coefs = pd.DataFrame.from_dict(export_coefs, orient='index').reset_index()
-    df_coefs.columns = ['Cépage', 'N (Azote)', 'P (Phosphore)', 'K (Potasse)']
+    # S'assurer que toutes les colonnes attendues sont là pour le dataframe
+    for col in ['n', 'p', 'k', 'mgo']:
+        if col not in df_coefs.columns:
+            df_coefs[col] = 0.0
+
+    df_coefs = df_coefs[['index', 'n', 'p', 'k', 'mgo']]
+    df_coefs.columns = ['Cépage', 'N (Azote)', 'P (Phosphore)', 'K (Potasse)', 'MgO (Magnésie)']
     st.dataframe(df_coefs, use_container_width=True, hide_index=True)
 
     st.markdown("---")
     st.markdown("### 📝 Modifier les Coefficients")
 
     c_selected = st.selectbox("Sélectionner un cépage à modifier", all_known_cepages)
-    c_coefs = export_coefs.get(c_selected, {'n': 1.0, 'p': 0.4, 'k': 1.3})
+    c_coefs = export_coefs.get(c_selected, {'n': 1.0, 'p': 0.4, 'k': 1.3, 'mgo': 0.2})
 
     with st.form("form_edit_coefs"):
-        colc1, colc2, colc3 = st.columns(3)
-        new_c_n = colc1.number_input("N / hl", value=float(c_coefs['n']), step=0.1)
-        new_c_p = colc2.number_input("P / hl", value=float(c_coefs['p']), step=0.1)
-        new_c_k = colc3.number_input("K / hl", value=float(c_coefs['k']), step=0.1)
+        colc1, colc2, colc3, colc4 = st.columns(4)
+        new_c_n = colc1.number_input("N / hl", value=float(c_coefs.get('n', 1.0)), step=0.1)
+        new_c_p = colc2.number_input("P / hl", value=float(c_coefs.get('p', 0.4)), step=0.1)
+        new_c_k = colc3.number_input("K / hl", value=float(c_coefs.get('k', 1.3)), step=0.1)
+        new_c_mgo = colc4.number_input("MgO / hl", value=float(c_coefs.get('mgo', 0.2)), step=0.1)
 
         if st.form_submit_button("Sauvegarder Coefficients"):
-            export_coefs[c_selected] = {'n': new_c_n, 'p': new_c_p, 'k': new_c_k}
+            export_coefs[c_selected] = {'n': new_c_n, 'p': new_c_p, 'k': new_c_k, 'mgo': new_c_mgo}
             storage.save_data('besoins', export_coefs)
             st.cache_resource.clear()
             st.cache_data.clear()
