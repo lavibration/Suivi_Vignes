@@ -49,7 +49,7 @@ class DataManager:
         return self._load_data_cached(key, default_factory)
 
     @st.cache_data(ttl="1h")
-    def _load_data_cached(_self, key, default_factory):
+    def _load_data_cached(_self, key, _default_factory):
         """Version interne cachée pour éviter les appels redondants."""
         json_file = os.path.join(_self.script_dir, f"{key}.json")
 
@@ -72,7 +72,7 @@ class DataManager:
                     return _self._df_to_json(key, df)
                 else:
                     if os.path.exists(json_file):
-                        local_data = _self._load_local_json(json_file, default_factory)
+                        local_data = _self._load_local_json(json_file, _default_factory)
                         if local_data and (isinstance(local_data, dict) and (local_data.get('campagnes') or local_data.get('traitements') or len(local_data) > 0)):
                             st.info(f"Migration automatique de '{key}' vers Google Sheets...")
                             _self.save_data(key, local_data)
@@ -80,7 +80,7 @@ class DataManager:
             except Exception as e:
                 st.error(f"Erreur lors du chargement de '{key}' depuis GSheets: {e}")
 
-        return _self._load_local_json(json_file, default_factory)
+        return _self._load_local_json(json_file, _default_factory)
 
     def save_data(self, key, data):
         """Sauvegarde les données."""

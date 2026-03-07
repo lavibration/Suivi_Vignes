@@ -87,7 +87,7 @@ try:
                         )
                         st.cache_resource.clear()
                         st.cache_data.clear()
-                        st.success(f"✅ Apport enregistré : {apport['u_n']} unités N, {apport['u_p']} unités P, {apport['u_k']} unités K.")
+                        st.success(f"✅ Apport enregistré : {apport['u_n']} unités N, {apport['u_p']} unités P, {apport['u_k']} unités K, {apport['u_mgo']} unités MgO.")
                         st.session_state.active_tab_fert = tab_titles[1] # Aller à l'historique
                         st.rerun()
                     else:
