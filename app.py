@@ -132,6 +132,12 @@ with st.sidebar:
     afficher_ipi = st.checkbox("Afficher IPI", value=True)
     afficher_meteo = st.checkbox("Afficher météo", value=True)
 
+    st.markdown("---")
+    if st.button("🔄 Forcer Rechargement GSheets", use_container_width=True):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.rerun()
+
 # Main content
 try:
     systeme = init_systeme_v2()

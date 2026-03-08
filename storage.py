@@ -48,7 +48,7 @@ class DataManager:
         """Charge les données pour une clé donnée (version avec cache Streamlit)."""
         return self._load_data_cached(key, default_factory)
 
-    @st.cache_data(ttl="1h")
+    @st.cache_data(ttl=10)
     def _load_data_cached(_self, key, _default_factory):
         """Version interne cachée pour éviter les appels redondants."""
         json_file = os.path.join(_self.script_dir, f"{key}.json")
@@ -56,32 +56,37 @@ class DataManager:
         if _self.use_gsheets:
             try:
                 tab_name = _self._get_tab_name(key)
-                # Augmenter le ttl pour éviter l'erreur 429 (Quota Exceeded)
-                # 10 secondes est un bon compromis entre réactivité et quota
-                df = _self.conn.read(worksheet=tab_name, ttl="10s")
+                # TTL court pour permettre la réactivité aux éditions manuelles
+                df = _self.conn.read(worksheet=tab_name, ttl=10)
 
-                # Check if empty
-                is_empty = df is None or len(df) == 0 or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
+                # 1. Vérifier si l'onglet est TOTALEMENT vide (pas de colonnes nommées)
+                completely_blank = df is None or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
 
-                if not is_empty and key in ['traitements', 'vendanges', 'historique_alertes', 'meteo_historique', 'gdd_historique', 'besoins', 'fertilisation']:
-                    mandatory = {
-                        'traitements': 'parcelle', 'vendanges': 'annee',
-                        'historique_alertes': 'annee', 'meteo_historique': 'date',
-                        'gdd_historique': 'date', 'besoins': 'Cépage',
-                        'fertilisation': 'parcelle'
-                    }
-                    if mandatory[key] not in df.columns:
-                        is_empty = True
+                # 2. Vérifier si les colonnes obligatoires manquent
+                mandatory_map = {
+                    'traitements': 'parcelle', 'vendanges': 'annee',
+                    'historique_alertes': 'annee', 'meteo_historique': 'date',
+                    'gdd_historique': 'date', 'besoins': 'Cépage',
+                    'fertilisation': 'parcelle', 'config_vignoble': 'json_content',
+                    'produits': 'nom'
+                }
+                mandatory_col = mandatory_map.get(key)
+                headers_missing = not completely_blank and mandatory_col and mandatory_col not in df.columns
 
-                if not is_empty:
+                # On ne migre que si c'est totalement vide OU si les headers manquent
+                should_migrate = (completely_blank or headers_missing) and os.path.exists(json_file)
+
+                if should_migrate:
+                    local_data = _self._load_local_json(json_file, _default_factory)
+                    # Ne pas migrer si local_data est vide selon sa structure
+                    if local_data and (isinstance(local_data, dict) and (local_data.get('campagnes') or local_data.get('traitements') or len(local_data) > 0)):
+                        st.info(f"Migration automatique de '{key}' vers Google Sheets...")
+                        _self.save_data(key, local_data)
+                        return local_data
+
+                # Si ce n'est pas blank, on utilise les données (même si len(df)==0)
+                if not completely_blank:
                     return _self._df_to_json(key, df)
-                else:
-                    if os.path.exists(json_file):
-                        local_data = _self._load_local_json(json_file, _default_factory)
-                        if local_data and (isinstance(local_data, dict) and (local_data.get('campagnes') or local_data.get('traitements') or len(local_data) > 0)):
-                            st.info(f"Migration automatique de '{key}' vers Google Sheets...")
-                            _self.save_data(key, local_data)
-                            return local_data
             except Exception as e:
                 st.error(f"Erreur lors du chargement de '{key}' depuis GSheets: {e}")
 
