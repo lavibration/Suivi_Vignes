@@ -63,8 +63,13 @@ class DataManager:
                 # Check if empty
                 is_empty = df is None or len(df) == 0 or (len(df.columns) > 0 and all(df.columns.str.contains('^Unnamed')))
 
-                if not is_empty and key in ['traitements', 'vendanges', 'historique_alertes', 'meteo_historique', 'gdd_historique']:
-                    mandatory = {'traitements': 'parcelle', 'vendanges': 'annee', 'historique_alertes': 'annee', 'meteo_historique': 'date', 'gdd_historique': 'date'}
+                if not is_empty and key in ['traitements', 'vendanges', 'historique_alertes', 'meteo_historique', 'gdd_historique', 'besoins', 'fertilisation']:
+                    mandatory = {
+                        'traitements': 'parcelle', 'vendanges': 'annee',
+                        'historique_alertes': 'annee', 'meteo_historique': 'date',
+                        'gdd_historique': 'date', 'besoins': 'Cépage',
+                        'fertilisation': 'parcelle'
+                    }
                     if mandatory[key] not in df.columns:
                         is_empty = True
 
@@ -143,11 +148,21 @@ class DataManager:
         if key == 'besoins':
             # Format attendu: {'Cépage': {'n': 1.0, 'p': 0.4, 'k': 1.3}, ...}
             if 'Cépage' in df.columns:
-                return df.set_index('Cépage').to_dict(orient='index')
+                data = df.set_index('Cépage').to_dict(orient='index')
+                for c in data:
+                    for k in ['n', 'p', 'k', 'mgo']:
+                        if k not in data[c]: data[c][k] = 0.0
+                        else: data[c][k] = self._get_num(data[c][k])
+                return data
             return {}
 
         if key == 'fertilisation':
-            return {'apports': df.to_dict(orient='records')}
+            recs = df.to_dict(orient='records')
+            for r in recs:
+                for k in ['u_n', 'u_p', 'u_k', 'u_mgo']:
+                    if k not in r: r[k] = 0.0
+                    else: r[k] = self._get_num(r[k])
+            return {'apports': recs}
 
         if key == 'traitements':
             recs = df.to_dict(orient='records')
