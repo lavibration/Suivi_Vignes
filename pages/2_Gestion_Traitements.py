@@ -219,6 +219,20 @@ try:
 
             st.dataframe(df_final, use_container_width=True, hide_index=True)
 
+            # --- SUPPRESSION / MODIFICATION ---
+            st.markdown("---")
+            with st.expander("🗑️ Supprimer un traitement"):
+                options_suppr = [f"{t['date']} - {t['parcelle']} - {t.get('caracteristiques', {}).get('nom', t['produit'])}" for t in traitements]
+                trait_to_del_str = st.selectbox("Sélectionner le traitement à supprimer", options=options_suppr)
+
+                if st.button("Confirmer la suppression", type="secondary"):
+                    idx_to_del = options_suppr.index(trait_to_del_str)
+                    systeme.traitements.historique['traitements'].pop(idx_to_del)
+                    systeme.traitements.sauvegarder_historique()
+                    st.success("✅ Traitement supprimé.")
+                    st.cache_resource.clear()
+                    st.rerun()
+
             # Export EXCEL (Format Officiel)
             st.markdown("---")
 

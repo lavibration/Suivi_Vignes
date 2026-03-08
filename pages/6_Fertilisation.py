@@ -135,8 +135,9 @@ try:
                     'N (Azote)': stats['n'],
                     'P (Phosphore)': stats['p'],
                     'K (Potasse)': stats['k'],
+                    'MgO (Magnésie)': stats.get('mgo', 0),
                     'Passages': stats['nb_passages'],
-                    'Fertilisée {annee_sel-1}'.format(annee_sel=annee_sel): "✅" if has_prev else "❌"
+                    f'Fertilisée {annee_sel-1}': "✅" if has_prev else "❌"
                 })
 
             df_bilan = pd.DataFrame(data_bilan)
@@ -149,6 +150,7 @@ try:
             fig.add_trace(go.Bar(x=df_bilan['Parcelle'], y=df_bilan['N (Azote)'], name='N (Azote)', marker_color='#2ca02c'))
             fig.add_trace(go.Bar(x=df_bilan['Parcelle'], y=df_bilan['P (Phosphore)'], name='P (Phosphore)', marker_color='#ff7f0e'))
             fig.add_trace(go.Bar(x=df_bilan['Parcelle'], y=df_bilan['K (Potasse)'], name='K (Potasse)', marker_color='#1f77b4'))
+            fig.add_trace(go.Bar(x=df_bilan['Parcelle'], y=df_bilan['MgO (Magnésie)'], name='MgO (Magnésie)', marker_color='#9467bd'))
 
             fig.update_layout(barmode='group', template="plotly_dark", height=400)
             st.plotly_chart(fig, use_container_width=True)
@@ -158,6 +160,11 @@ try:
         if gestion_fert.donnees['apports']:
             df_hist = pd.DataFrame(gestion_fert.donnees['apports'])
             df_hist = df_hist.sort_values('date', ascending=False)
+
+            # S'assurer que toutes les colonnes attendues existent
+            for col in ['u_n', 'u_p', 'u_k', 'u_mgo', 'bio', 'type_application']:
+                if col not in df_hist.columns:
+                    df_hist[col] = 0.0 if col.startswith('u_') else ""
 
             # Formater les colonnes
             cols_show = {
@@ -172,7 +179,9 @@ try:
                 'type_application': 'Type',
                 'bio': 'Bio'
             }
-            st.dataframe(df_hist[list(cols_show.keys())].rename(columns=cols_show), use_container_width=True, hide_index=True)
+            # Filtrer seulement les colonnes qui existent vraiment maintenant
+            cols_to_use = [c for c in cols_show.keys() if c in df_hist.columns]
+            st.dataframe(df_hist[cols_to_use].rename(columns=cols_show), use_container_width=True, hide_index=True)
 
             if st.button("🗑️ Vider l'historique de fertilisation"):
                 if st.checkbox("Confirmer la suppression totale"):
