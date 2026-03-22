@@ -41,7 +41,7 @@ class ConfigVignoble:
     }
     COEF_STADES = {
         'repos': 0.0,
-        'debourrement': 0.8,
+        'debourrement': 0.4,
         'pousse_10cm': 1.5,
         'pre_floraison': 1.8,
         'floraison': 2.0,
@@ -1120,15 +1120,18 @@ class SystemeDecision:
             mode_calcul = "1er Mars (Estimation)"
 
             date_biofix = parcelle.get('date_debourrement')
+            gdd_initial = 0.0
             if date_biofix:
                 date_biofix_dt = datetime.strptime(date_biofix, '%Y-%m-%d')
                 if date_biofix_dt.year == annee_actuelle and date_biofix_dt.date() <= aujourdhui:
                     date_debut_gdd_str = date_biofix
                     mode_calcul = f"Biofix ({date_biofix})"
+                    # Jules : Si on utilise un Biofix manuel pour le débourrement, on part de 180 GDD (seuil débourrement)
+                    gdd_initial = 180.0
 
             date_debut_gdd = datetime.strptime(date_debut_gdd_str, '%Y-%m-%d').date()
 
-            gdd_sum = 0.0
+            gdd_sum = gdd_initial
             stade_estime_gdd = 'repos'
 
             dates_historique = sorted(meteo_historique.keys())
