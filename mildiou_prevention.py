@@ -1352,11 +1352,14 @@ class SystemeDecision:
             print(f"Coef pousse: {self.traitements.COEF_POUSSE.get(parcelle['stade_actuel'], 1.0)}")
             print(f"→ Protection: {protection}/10 (Limité par: {facteur_limitant})")
 
-        # DÉCISION (Logique pivotée sur l'IPI)
+        # DÉCISION (Logique pivotée sur l'IPI + Protection)
         score_decision = risque_simple - protection
         ipi_present = ipi_value if ipi_value is not None else 0
 
-        if ipi_present > 0:
+        if score_decision <= 0:
+            decision = "Protection suffisante (Mildiou)"
+            urgence = "faible"
+        elif ipi_present > 0:
             if score_decision >= self.SEUIL_DECISION_HAUTE:
                 decision = "TRAITEMENT URGENT (Mildiou)"
                 urgence = "haute"
