@@ -984,8 +984,8 @@ class SystemeDecision:
 
     SEUIL_ALERTE_PLUIE = 10  # mm
     SEUIL_PROTECTION_FAIBLE = 5  # /10
-    SEUIL_DECISION_HAUTE = 5  # /10
-    SEUIL_DECISION_MOYENNE = 2  # /10
+    SEUIL_DECISION_HAUTE = 4.0  # /10
+    SEUIL_DECISION_MOYENNE = 2.0  # /10
 
     METEO_HISTORIQUE_FILE = 'meteo_historique.json'
     GDD_STADE_MAP = {
@@ -1352,17 +1352,24 @@ class SystemeDecision:
             print(f"Coef pousse: {self.traitements.COEF_POUSSE.get(parcelle['stade_actuel'], 1.0)}")
             print(f"→ Protection: {protection}/10 (Limité par: {facteur_limitant})")
 
-        # DÉCISION
+        # DÉCISION (Logique pivotée sur l'IPI)
         score_decision = risque_simple - protection
-        if score_decision >= self.SEUIL_DECISION_HAUTE:
-            decision = "TRAITER MAINTENANT (Mildiou)"
-            urgence = "haute"
-        elif score_decision >= self.SEUIL_DECISION_MOYENNE:
-            decision = "Surveiller - Traiter si pluie annoncée (Mildiou)"
-            urgence = "moyenne"
+        ipi_present = ipi_value if ipi_value is not None else 0
+
+        if ipi_present > 0:
+            if score_decision >= self.SEUIL_DECISION_HAUTE:
+                decision = "TRAITEMENT URGENT (Mildiou)"
+                urgence = "haute"
+            else:
+                decision = "TRAITEMENT PRÉVENTIF (Mildiou)"
+                urgence = "moyenne"
         else:
-            decision = "Pas de traitement Mildiou nécessaire"
-            urgence = "faible"
+            if score_decision >= self.SEUIL_DECISION_HAUTE:
+                decision = "Risque théorique élevé : surveiller remontée des températures (Mildiou)"
+                urgence = "moyenne"
+            else:
+                decision = "Pas de traitement Mildiou nécessaire"
+                urgence = "faible"
 
         alerte_oidium = ""
         if niveau_oidium == "FORT":
