@@ -177,13 +177,20 @@ elif selected_tab == tab_titles[1]:
 
     with col_p_add:
         st.markdown("### ➕ Ajouter un Produit")
+        p_type = st.selectbox("Type *", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"], key="add_p_type")
+        is_phyto = p_type in ["contact", "penetrant", "systemique", "autre"]
+
         with st.form("form_add_produit", clear_on_submit=True):
             p_nom = st.text_input("Nom commercial *")
             p_amm = st.text_input("N° AMM")
-            p_type = st.selectbox("Type *", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"])
 
-            p_pers = st.number_input("Persistance (jours) *", min_value=0, value=7)
-            p_less = st.number_input("Seuil lessivage (mm) *", min_value=0, value=25)
+            if is_phyto:
+                p_pers = st.number_input("Persistance (jours) *", min_value=0, value=7)
+                p_less = st.number_input("Seuil lessivage (mm) *", min_value=0, value=25)
+            else:
+                p_pers = 0
+                p_less = 0
+
             p_dose = st.number_input("Dose référence (Kg/Ha ou L/Ha) *", min_value=0.0, value=1.0, step=0.1, format="%.2f")
 
             st.markdown("---")
@@ -240,14 +247,23 @@ elif selected_tab == tab_titles[1]:
             p_select_nom = st.selectbox("Sélectionner un produit", [p['nom'] for p in produits_list])
             p_to_edit = next(p for p in produits_list if p['nom'] == p_select_nom)
 
+            all_types = ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"]
+            pe_type = st.selectbox("Type", all_types,
+                                   index=all_types.index(p_to_edit.get('type', 'contact')) if p_to_edit.get('type') in all_types else 0,
+                                   key="edit_p_type")
+            is_phyto_edit = pe_type in ["contact", "penetrant", "systemique", "autre"]
+
             with st.form("form_edit_produit"):
                 pe_nom = st.text_input("Nom commercial", value=p_to_edit['nom'])
                 pe_amm = st.text_input("N° AMM", value=p_to_edit.get('n_amm', ''))
-                pe_type = st.selectbox("Type", ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"],
-                                       index=["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"].index(p_to_edit.get('type', 'contact')) if p_to_edit.get('type') in ["contact", "penetrant", "systemique", "engrais solide", "engrais foliaire", "amendement", "autre"] else 0)
 
-                pe_pers = st.number_input("Persistance (jours)", min_value=0, value=int(p_to_edit.get('persistance_jours', 7)))
-                pe_less = st.number_input("Seuil lessivage (mm)", min_value=0, value=int(p_to_edit.get('lessivage_seuil_mm', 25)))
+                if is_phyto_edit:
+                    pe_pers = st.number_input("Persistance (jours)", min_value=0, value=int(p_to_edit.get('persistance_jours', 7)))
+                    pe_less = st.number_input("Seuil lessivage (mm)", min_value=0, value=int(p_to_edit.get('lessivage_seuil_mm', 25)))
+                else:
+                    pe_pers = 0
+                    pe_less = 0
+
                 pe_dose = st.number_input("Dose référence", min_value=0.0, value=float(p_to_edit.get('dose_reference_kg_ha', 1.0)), step=0.1, format="%.2f")
 
                 st.markdown("---")
