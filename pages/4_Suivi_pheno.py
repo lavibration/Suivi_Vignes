@@ -28,18 +28,18 @@ except ImportError:
 # ==============================================================================
 # Clé = Mois (numérique)
 REFERENCE_TABLE = {
-    1: {'Stade': 'dormance', 'NDVI_min': 0.05, 'NDVI_moy': 0.10, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
-    2: {'Stade': 'débourrement précoce', 'NDVI_min': 0.20, 'NDVI_moy': 0.25, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
-    3: {'Stade': 'débourrement', 'NDVI_min': 0.25, 'NDVI_moy': 0.28, 'NDMI_min': 0.00, 'NDMI_moy': 0.03},
-    4: {'Stade': 'croissance végétative', 'NDVI_min': 0.30, 'NDVI_moy': 0.33, 'NDMI_min': 0.05, 'NDMI_moy': 0.06},
-    5: {'Stade': 'pré-floraison', 'NDVI_min': 0.35, 'NDVI_moy': 0.38, 'NDMI_min': 0.08, 'NDMI_moy': 0.10},
-    6: {'Stade': 'floraison-nouaison', 'NDVI_min': 0.38, 'NDVI_moy': 0.40, 'NDMI_min': 0.06, 'NDMI_moy': 0.08},
-    7: {'Stade': 'croissance baies / stress', 'NDVI_min': 0.32, 'NDVI_moy': 0.36, 'NDMI_min': 0.02, 'NDMI_moy': 0.05},
-    8: {'Stade': 'veraison', 'NDVI_min': 0.28, 'NDVI_moy': 0.33, 'NDMI_min': 0.00, 'NDMI_moy': 0.04},
-    9: {'Stade': 'maturation', 'NDVI_min': 0.25, 'NDVI_moy': 0.30, 'NDMI_min': -0.02, 'NDMI_moy': 0.03},
-    10: {'Stade': 'post-récolte', 'NDVI_min': 0.18, 'NDVI_moy': 0.25, 'NDMI_min': -0.03, 'NDMI_moy': 0.02},
-    11: {'Stade': 'dormance', 'NDVI_min': 0.10, 'NDVI_moy': 0.15, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
-    12: {'Stade': 'dormance', 'NDVI_min': 0.05, 'NDVI_moy': 0.10, 'NDMI_min': -0.05, 'NDMI_moy': 0.00}
+    1: {'Stade': 'Repos hivernal', 'NDVI_min': 0.05, 'NDVI_moy': 0.10, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
+    2: {'Stade': 'Bourgeon dans le coton', 'NDVI_min': 0.20, 'NDVI_moy': 0.25, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
+    3: {'Stade': 'Pointe verte (Débourrement)', 'NDVI_min': 0.25, 'NDVI_moy': 0.28, 'NDMI_min': 0.00, 'NDMI_moy': 0.03},
+    4: {'Stade': 'Feuilles étalées', 'NDVI_min': 0.30, 'NDVI_moy': 0.33, 'NDMI_min': 0.05, 'NDMI_moy': 0.06},
+    5: {'Stade': 'Grappes visibles / Boutons', 'NDVI_min': 0.35, 'NDVI_moy': 0.38, 'NDMI_min': 0.08, 'NDMI_moy': 0.10},
+    6: {'Stade': 'Floraison / Nouaison', 'NDVI_min': 0.38, 'NDVI_moy': 0.40, 'NDMI_min': 0.06, 'NDMI_moy': 0.08},
+    7: {'Stade': 'Fermeture de grappe', 'NDVI_min': 0.32, 'NDVI_moy': 0.36, 'NDMI_min': 0.02, 'NDMI_moy': 0.05},
+    8: {'Stade': 'Véraison', 'NDVI_min': 0.28, 'NDVI_moy': 0.33, 'NDMI_min': 0.00, 'NDMI_moy': 0.04},
+    9: {'Stade': 'Maturité', 'NDVI_min': 0.25, 'NDVI_moy': 0.30, 'NDMI_min': -0.02, 'NDMI_moy': 0.03},
+    10: {'Stade': 'Post-récolte', 'NDVI_min': 0.18, 'NDVI_moy': 0.25, 'NDMI_min': -0.03, 'NDMI_moy': 0.02},
+    11: {'Stade': 'Chute des feuilles', 'NDVI_min': 0.10, 'NDVI_moy': 0.15, 'NDMI_min': -0.05, 'NDMI_moy': 0.00},
+    12: {'Stade': 'Repos hivernal', 'NDVI_min': 0.05, 'NDVI_moy': 0.10, 'NDMI_min': -0.05, 'NDMI_moy': 0.00}
 }
 
 # ==============================================================================

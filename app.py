@@ -80,7 +80,7 @@ def sauvegarder_stade(parcelle_nom, nouveau_stade, date_debourrement=None):
         for parcelle in config['parcelles']:
             if parcelle['nom'] == parcelle_nom:
                 parcelle['stade_actuel'] = nouveau_stade
-                if nouveau_stade == 'debourrement' and date_debourrement:
+                if nouveau_stade == 'pointe_verte' and date_debourrement:
                     parcelle['date_debourrement'] = date_debourrement
                 elif nouveau_stade == 'repos':
                     parcelle['date_debourrement'] = None
@@ -158,11 +158,21 @@ try:
 
         stades_disponibles = list(systeme.config.COEF_STADES.keys())
         descriptions_stades = {
-            'repos': '🛌 Repos hivernal', 'debourrement': '🌱 Débourrement',
-            'pousse_10cm': '📏 Pousse active (>10cm)', 'pre_floraison': '🌸 Pré-floraison',
-            'floraison': '💐 Floraison', 'nouaison': '🫐 Nouaison',
-            'fermeture_grappe': '🍇 Fermeture de la grappe', 'veraison': '🎨 Véraison',
-            'maturation': '🍷 Maturation'
+            'repos': '🛌 Repos hivernal',
+            'bourgeon_hiver': '❄️ Bourgeon d\'hiver (A/01)',
+            'bourgeon_coton': '☁️ Bourgeon dans le coton (B/05)',
+            'pointe_verte': '🌱 Pointe verte (C/09)',
+            'sorties_feuilles': '🍃 Sorties des feuilles (D/11)',
+            'feuilles_etalees': '🌿 Feuilles étalées (E/13)',
+            'grappes_visibles': '🍇 Grappes visibles (F/53)',
+            'boutons_agglomeres': '🟢 Boutons agglomérés (G/55)',
+            'boutons_separes': '🟡 Boutons séparés (H/57)',
+            'floraison': '💐 Floraison (I/65)',
+            'nouaison': '🫐 Nouaison (J/71)',
+            'petits_pois': '🟢 Petits pois (K/75)',
+            'fermeture_grappe': '🍇 Fermeture de grappe (L/77)',
+            'veraison': '🎨 Véraison (M/81)',
+            'maturite': '🍷 Maturité (N/89)'
         }
 
         # Analyser toutes les parcelles une seule fois pour obtenir les GDD
@@ -206,9 +216,9 @@ try:
                 )
 
                 date_debourrement = None
-                if nouveau_stade == 'debourrement' and parcelle['stade_actuel'] != 'debourrement':
+                if nouveau_stade == 'pointe_verte' and parcelle['stade_actuel'] != 'pointe_verte':
                     date_debourrement = st.date_input(
-                        "🗓️ Date du débourrement (Biofix)",
+                        "🗓️ Date de la pointe verte (Biofix GDD)",
                         value=datetime.now(),
                         key=f"date_biofix_{parcelle['nom']}"
                     )

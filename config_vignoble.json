@@ -8,12 +8,13 @@
       "cepages": [
         "Cabernet Sauvignon"
       ],
-      "stade_actuel": "repos",
+      "stade_actuel": "pointe_verte",
       "exposition": "Sud",
       "notes": "Terrain gravillons + sec",
-      "date_debourrement": null,
+      "date_debourrement": "2026-03-15",
       "rfu_max_mm": 100.0,
-      "objectif_rdt": 50.0
+      "objectif_rdt": 50.0,
+      "broyage_sarments": false
     },
     {
       "nom": "Caladoc Graviers",
@@ -26,7 +27,8 @@
       "notes": "..",
       "date_debourrement": null,
       "rfu_max_mm": 100.0,
-      "objectif_rdt": 50.0
+      "objectif_rdt": 50.0,
+      "broyage_sarments": false
     },
     {
       "nom": "Les Ponts",
@@ -39,7 +41,8 @@
       "notes": "..",
       "date_debourrement": null,
       "rfu_max_mm": 100.0,
-      "objectif_rdt": 50.0
+      "objectif_rdt": 50.0,
+      "broyage_sarments": false
     },
     {
       "nom": "Fate",
@@ -52,7 +55,8 @@
       "notes": "Jeunes vignes, humide et sensible",
       "date_debourrement": null,
       "rfu_max_mm": 100.0,
-      "objectif_rdt": 50.0
+      "objectif_rdt": 50.0,
+      "broyage_sarments": false
     }
   ],
   "parametres": {
