@@ -1427,12 +1427,12 @@
           "bilan_hydrique_pct": 86.2,
           "bilan_hydrique_ks": 1.0,
           "risque_mildiou": {
-            "score": 1.0,
+            "score": 0.5,
             "niveau": "FAIBLE",
             "ipi": 0
           },
           "risque_oidium": {
-            "score": 0.3,
+            "score": 0.2,
             "niveau": "FAIBLE"
           },
           "protection": {
@@ -1441,7 +1441,7 @@
             "facteur_limitant": "Lessivage (503.1mm)"
           },
           "decision": {
-            "score": 1.0,
+            "score": 0.5,
             "action": "Pas de traitement Mildiou nécessaire",
             "urgence": "faible",
             "alerte_oidium": "",
@@ -1449,12 +1449,12 @@
             "alerte_hydrique": "CONFORTABLE"
           },
           "meteo": {
-            "temp_moy": 18.05,
+            "temp_moy": 18.45,
             "precipitation": 0.0,
-            "humidite": 49
+            "humidite": 50
           },
           "previsions": {
-            "pluie_3j": 1.5
+            "pluie_3j": 1.1
           }
         },
         {
@@ -1488,12 +1488,12 @@
             "alerte_hydrique": "CONFORTABLE (Dormance)"
           },
           "meteo": {
-            "temp_moy": 18.05,
+            "temp_moy": 18.45,
             "precipitation": 0.0,
-            "humidite": 49
+            "humidite": 50
           },
           "previsions": {
-            "pluie_3j": 1.5
+            "pluie_3j": 1.1
           }
         },
         {
@@ -1527,12 +1527,12 @@
             "alerte_hydrique": "CONFORTABLE (Dormance)"
           },
           "meteo": {
-            "temp_moy": 18.05,
+            "temp_moy": 18.45,
             "precipitation": 0.0,
-            "humidite": 49
+            "humidite": 50
           },
           "previsions": {
-            "pluie_3j": 1.5
+            "pluie_3j": 1.1
           }
         },
         {
@@ -1566,12 +1566,12 @@
             "alerte_hydrique": "CONFORTABLE (Dormance)"
           },
           "meteo": {
-            "temp_moy": 18.05,
+            "temp_moy": 18.45,
             "precipitation": 0.0,
-            "humidite": 49
+            "humidite": 50
           },
           "previsions": {
-            "pluie_3j": 1.5
+            "pluie_3j": 1.1
           }
         }
       ]

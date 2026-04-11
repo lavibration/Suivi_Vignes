@@ -1980,49 +1980,49 @@
     "gdd_jour": 9.7
   },
   "2026-04-11": {
-    "temp_moy": 18.05,
-    "temp_max": 24.0,
+    "temp_moy": 18.45,
+    "temp_max": 24.8,
     "temp_min": 12.1,
     "precipitation": 0.0,
-    "humidite": 49,
+    "humidite": 50,
     "etp0": 4.53,
-    "gdd_jour": 8.05
+    "gdd_jour": 8.45
   },
   "2026-04-12": {
-    "temp_moy": 17.299999999999997,
-    "temp_max": 22.9,
-    "temp_min": 11.7,
+    "temp_moy": 17.4,
+    "temp_max": 23.3,
+    "temp_min": 11.5,
     "precipitation": 0.0,
-    "humidite": 63,
-    "etp0": 3.17,
-    "gdd_jour": 7.299999999999997
+    "humidite": 68,
+    "etp0": 3.26,
+    "gdd_jour": 7.399999999999999
   },
   "2026-04-13": {
-    "temp_moy": 14.5,
-    "temp_max": 17.0,
-    "temp_min": 12.0,
-    "precipitation": 1.5,
-    "humidite": 79,
-    "etp0": 1.98,
-    "gdd_jour": 4.5
+    "temp_moy": 15.5,
+    "temp_max": 18.5,
+    "temp_min": 12.5,
+    "precipitation": 1.1,
+    "humidite": 68,
+    "etp0": 2.33,
+    "gdd_jour": 5.5
   },
   "2026-04-14": {
-    "temp_moy": 16.7,
-    "temp_max": 22.7,
+    "temp_moy": 17.049999999999997,
+    "temp_max": 23.4,
     "temp_min": 10.7,
     "precipitation": 0.0,
-    "humidite": 59,
-    "etp0": 4.55,
-    "gdd_jour": 6.699999999999999
+    "humidite": 54,
+    "etp0": 4.66,
+    "gdd_jour": 7.049999999999997
   },
   "2026-04-15": {
-    "temp_moy": 17.55,
+    "temp_moy": 17.5,
     "temp_max": 22.0,
-    "temp_min": 13.1,
+    "temp_min": 13.0,
     "precipitation": 0.0,
-    "humidite": 57,
-    "etp0": 4.53,
-    "gdd_jour": 7.550000000000001
+    "humidite": 55,
+    "etp0": 4.71,
+    "gdd_jour": 7.5
   },
   "2026-04-16": {
     "temp_moy": 19.15,

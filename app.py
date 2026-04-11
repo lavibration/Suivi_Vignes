@@ -176,11 +176,8 @@ try:
         }
 
         # Analyser toutes les parcelles une seule fois pour obtenir les GDD
-        analyses_parcelles = {}
         with st.spinner("Calcul des Risques et GDD (DJC)..."):
-            for parcelle in systeme.config.parcelles:
-                # On lance l'analyse complète (nécessaire pour les alertes)
-                analyses_parcelles[parcelle['nom']] = systeme.analyser_parcelle(parcelle['nom'], utiliser_ipi=afficher_ipi, debug=False)
+            analyses_parcelles = systeme.analyser_toutes_parcelles(utiliser_ipi=afficher_ipi, debug=False, sauvegarder=True)
 
         cols_stades = st.columns(len(systeme.config.parcelles))
 
@@ -216,13 +213,22 @@ try:
                 )
 
                 date_debourrement = None
-                if nouveau_stade == 'pointe_verte' and parcelle['stade_actuel'] != 'pointe_verte':
-                    date_debourrement = st.date_input(
+                if nouveau_stade == 'pointe_verte':
+                    current_biofix = None
+                    if parcelle.get('date_debourrement'):
+                        try:
+                            current_biofix = datetime.strptime(parcelle['date_debourrement'], '%Y-%m-%d').date()
+                        except:
+                            current_biofix = datetime.now().date()
+                    else:
+                        current_biofix = datetime.now().date()
+
+                    date_debourrement_obj = st.date_input(
                         "🗓️ Date de la pointe verte (Biofix GDD)",
-                        value=datetime.now(),
+                        value=current_biofix,
                         key=f"date_biofix_{parcelle['nom']}"
                     )
-                    date_debourrement = date_debourrement.strftime('%Y-%m-%d')
+                    date_debourrement = date_debourrement_obj.strftime('%Y-%m-%d')
 
                 if st.button(f"💾 Sauvegarder Stade", key=f"save_{parcelle['nom']}", type="primary"):
                     if sauvegarder_stade(parcelle['nom'], nouveau_stade, date_debourrement):
@@ -238,6 +244,11 @@ try:
     st.subheader("🚨 Alertes et Recommandations")
 
     toutes_alertes = []
+
+    # On utilise les analyses déjà calculées plus haut si possible, sinon on les calcule (sans resauvegarder)
+    if 'analyses_parcelles' not in locals():
+        with st.spinner("Calcul des alertes..."):
+            analyses_parcelles = systeme.analyser_toutes_parcelles(utiliser_ipi=afficher_ipi, debug=False, sauvegarder=False)
 
     for parcelle in systeme.config.parcelles:
         analyse = analyses_parcelles.get(parcelle['nom'])
