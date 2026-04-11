@@ -116,17 +116,21 @@ try:
             with st.spinner("Recalcul avec traces debug..."):
                 f = io.StringIO()
                 with redirect_stdout(f):
+                    # On ne sauvegarde pas l'historique lors d'une vue détaillée
+                    # pour économiser les quotas GSheets
                     analyse = systeme.analyser_parcelle(
                         parcelle_selectionnee,
                         utiliser_ipi=utiliser_ipi,
-                        debug=True
+                        debug=True,
+                        sauvegarder_historique=False
                     )
                 debug_output = f.getvalue()
         else:
             analyse = systeme.analyser_parcelle(
                 parcelle_selectionnee,
                 utiliser_ipi=utiliser_ipi,
-                debug=False
+                debug=False,
+                sauvegarder_historique=False
             )
 
         if 'erreur' in analyse:

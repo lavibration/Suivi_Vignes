@@ -42,13 +42,13 @@ class ConfigVignoble:
     COEF_STADES = {
         'repos': 0.0,
         'bourgeon_hiver': 0.0,
-        'bourgeon_coton': 0.1,
-        'pointe_verte': 0.4,
-        'sorties_feuilles': 0.8,
-        'feuilles_etalees': 1.2,
-        'grappes_visibles': 1.5,
-        'boutons_agglomeres': 1.8,
-        'boutons_separes': 1.9,
+        'bourgeon_coton': 0.05,
+        'pointe_verte': 0.2,
+        'sorties_feuilles': 0.4,
+        'feuilles_etalees': 0.8,
+        'grappes_visibles': 1.2,
+        'boutons_agglomeres': 1.5,
+        'boutons_separes': 1.7,
         'floraison': 2.0,
         'nouaison': 1.8,
         'petits_pois': 1.5,
@@ -899,14 +899,10 @@ class GestionHistoriqueAlertes:
         self.historique['campagnes'].append(campagne)
         return campagne
 
-    def ajouter_analyse(self, analyse_complete):
-        date_analyse = analyse_complete['date_analyse']
-        annee = datetime.strptime(date_analyse, '%Y-%m-%d').year
-        campagne = self.get_campagne(annee)
-        if not campagne:
-            campagne = self.creer_campagne(annee)
-        analyse_simplifiee = {
-            'date': date_analyse,
+    def _simplifier_analyse(self, analyse_complete):
+        """Transforme une analyse complète en format résumé pour l'historique."""
+        return {
+            'date': analyse_complete['date_analyse'],
             'parcelle': analyse_complete['parcelle'],
             'stade': analyse_complete['stade'],
             'gdd_cumul': analyse_complete.get('gdd', {}).get('cumul'),
@@ -945,6 +941,16 @@ class GestionHistoriqueAlertes:
                 'pluie_3j': analyse_complete['previsions_3j']['pluie_totale']
             }
         }
+
+    def ajouter_analyse(self, analyse_complete):
+        date_analyse = analyse_complete['date_analyse']
+        annee = datetime.strptime(date_analyse, '%Y-%m-%d').year
+        campagne = self.get_campagne(annee)
+        if not campagne:
+            campagne = self.creer_campagne(annee)
+
+        analyse_simplifiee = self._simplifier_analyse(analyse_complete)
+
         analyses_existantes = [a for a in campagne['analyses']
                                if a['date'] == date_analyse and a['parcelle'] == analyse_complete['parcelle']]
         if analyses_existantes:
@@ -952,6 +958,29 @@ class GestionHistoriqueAlertes:
             campagne['analyses'][idx] = analyse_simplifiee
         else:
             campagne['analyses'].append(analyse_simplifiee)
+        self.sauvegarder()
+
+    def ajouter_analyses_batch(self, analyses_completes):
+        """Ajoute plusieurs analyses et sauvegarde une seule fois."""
+        if not analyses_completes: return
+
+        for analyse_complete in analyses_completes:
+            date_analyse = analyse_complete['date_analyse']
+            annee = datetime.strptime(date_analyse, '%Y-%m-%d').year
+            campagne = self.get_campagne(annee)
+            if not campagne:
+                campagne = self.creer_campagne(annee)
+
+            analyse_simplifiee = self._simplifier_analyse(analyse_complete)
+
+            analyses_existantes = [a for a in campagne['analyses']
+                                   if a['date'] == date_analyse and a['parcelle'] == analyse_complete['parcelle']]
+            if analyses_existantes:
+                idx = campagne['analyses'].index(analyses_existantes[0])
+                campagne['analyses'][idx] = analyse_simplifiee
+            else:
+                campagne['analyses'].append(analyse_simplifiee)
+
         self.sauvegarder()
 
     def get_analyses_parcelle(self, parcelle, date_debut=None, date_fin=None):
@@ -1141,7 +1170,7 @@ class SystemeDecision:
         Calcule le GDD cumulé (base 10) en lisant l'historique persistant.
         """
         try:
-            if stade_manuel == 'repos':
+            if stade_manuel == 'repos' and not parcelle.get('date_debourrement'):
                 return 0, 'repos', 180, 'pointe_verte', 'En dormance (calcul GDD inactif)'
 
             annee_actuelle = datetime.strptime(date_actuelle, '%Y-%m-%d').year
@@ -1224,8 +1253,25 @@ class SystemeDecision:
         else:
             return f"{prochain_stade_nom} non atteint dans les 7 prochains jours.", -1
 
+    def analyser_toutes_parcelles(self, utiliser_ipi: bool = False, debug: bool = False,
+                                  sauvegarder: bool = True) -> Dict[str, Dict]:
+        """Analyse toutes les parcelles et sauvegarde en batch."""
+        analyses = {}
+        for parcelle in self.config.parcelles:
+            analyses[parcelle['nom']] = self.analyser_parcelle(
+                parcelle['nom'], utiliser_ipi, debug, sauvegarder_historique=False
+            )
+
+        if sauvegarder:
+            try:
+                self.historique_alertes.ajouter_analyses_batch(list(analyses.values()))
+            except Exception as e:
+                print(f"⚠️ Erreur sauvegarde batch historique : {e}")
+
+        return analyses
+
     def analyser_parcelle(self, nom_parcelle: str, utiliser_ipi: bool = False,
-                          debug: bool = False) -> Dict:
+                          debug: bool = False, sauvegarder_historique: bool = True) -> Dict:
         """Analyse complète d'une parcelle"""
         parcelle = next((p for p in self.config.parcelles if p['nom'] == nom_parcelle), None)
         if not parcelle:
@@ -1463,10 +1509,12 @@ class SystemeDecision:
         self.historique_analyses.append(
             {'date': date_actuelle, 'parcelle': nom_parcelle, 'risque': risque_simple, 'protection': protection,
              'decision_score': score_decision})
-        try:
-            self.historique_alertes.ajouter_analyse(analyse)
-        except Exception as e:
-            print(f"⚠️ Erreur sauvegarde historique : {e}")
+
+        if sauvegarder_historique:
+            try:
+                self.historique_alertes.ajouter_analyse(analyse)
+            except Exception as e:
+                print(f"⚠️ Erreur sauvegarde historique : {e}")
 
         return analyse
 
