@@ -149,7 +149,24 @@ try:
                     st.markdown(f"- {cepage}")
             with col_info3:
                 st.markdown("### 🌱 Stade Actuel (Manuel)")
-                st.markdown(f"**{parcelle_obj['stade_actuel']}**")
+                descriptions_stades = {
+                    'repos': '🛌 Repos hivernal',
+                    'bourgeon_hiver': '❄️ Bourgeon d\'hiver (A/01)',
+                    'bourgeon_coton': '☁️ Bourgeon dans le coton (B/05)',
+                    'pointe_verte': '🌱 Pointe verte (C/09)',
+                    'sorties_feuilles': '🍃 Sorties des feuilles (D/11)',
+                    'feuilles_etalees': '🌿 Feuilles étalées (E/13)',
+                    'grappes_visibles': '🍇 Grappes visibles (F/53)',
+                    'boutons_agglomeres': '🟢 Boutons agglomérés (G/55)',
+                    'boutons_separes': '🟡 Boutons séparés (H/57)',
+                    'floraison': '💐 Floraison (I/65)',
+                    'nouaison': '🫐 Nouaison (J/71)',
+                    'petits_pois': '🟢 Petits pois (K/75)',
+                    'fermeture_grappe': '🍇 Fermeture de grappe (L/77)',
+                    'veraison': '🎨 Véraison (M/81)',
+                    'maturite': '🍷 Maturité (N/89)'
+                }
+                st.markdown(f"**{descriptions_stades.get(parcelle_obj['stade_actuel'], parcelle_obj['stade_actuel'])}**")
                 coef_stade = systeme.config.COEF_STADES.get(parcelle_obj['stade_actuel'], 0)
                 coef_pousse = systeme.traitements.COEF_POUSSE.get(parcelle_obj['stade_actuel'], 0)
                 st.caption(f"Coef. risque : {coef_stade}")
@@ -171,7 +188,8 @@ try:
                     st.metric("🌡️ GDD Cumulés (base 10°C)", f"{gdd_info.get('cumul', 0)} GDD",
                               help=f"Calcul basé sur : {gdd_info.get('mode_calcul')}")
                 with col_gdd2:
-                    st.metric("🌱 Stade Estimé (GDD)", gdd_info.get('stade_estime', 'N/A'))
+                    stade_estime_key = gdd_info.get('stade_estime', 'N/A')
+                    st.metric("🌱 Stade Estimé (GDD)", descriptions_stades.get(stade_estime_key, stade_estime_key))
                 with col_gdd3:
                     alerte_stade = gdd_info.get('alerte_stade', '')
                     if "dans" in alerte_stade:

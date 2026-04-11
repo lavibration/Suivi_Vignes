@@ -41,14 +41,20 @@ class ConfigVignoble:
     }
     COEF_STADES = {
         'repos': 0.0,
-        'debourrement': 0.4,
-        'pousse_10cm': 1.5,
-        'pre_floraison': 1.8,
+        'bourgeon_hiver': 0.0,
+        'bourgeon_coton': 0.1,
+        'pointe_verte': 0.4,
+        'sorties_feuilles': 0.8,
+        'feuilles_etalees': 1.2,
+        'grappes_visibles': 1.5,
+        'boutons_agglomeres': 1.8,
+        'boutons_separes': 1.9,
         'floraison': 2.0,
         'nouaison': 1.8,
-        'fermeture_grappe': 1.5,
-        'veraison': 0.7,
-        'maturation': 0.3
+        'petits_pois': 1.5,
+        'fermeture_grappe': 1.0,
+        'veraison': 0.6,
+        'maturite': 0.2
     }
 
     def __init__(self, config_file: str = 'config_vignoble'):
@@ -166,7 +172,8 @@ class ConfigVignoble:
         for parcelle in self.parcelles:
             if parcelle['nom'] == nom_parcelle:
                 parcelle['stade_actuel'] = nouveau_stade
-                if nouveau_stade == 'debourrement' and date_debourrement:
+                # Pointe verte est considérée comme le point de biofix GDD (Débourrement)
+                if nouveau_stade == 'pointe_verte' and date_debourrement:
                     parcelle['date_debourrement'] = date_debourrement
                     print(
                         f"✅ Date de débourrement (biofix GDD) enregistrée pour '{parcelle['nom']}' : {date_debourrement}")
@@ -396,21 +403,21 @@ class ModeleBilanHydrique:
     @staticmethod
     def calculer_kc_gdd(gdd_cumul: float) -> float:
         """Calcule un Kc dynamique basé sur les GDD (courbe foliaire simplifiée)"""
-        # 0 - 200 GDD : Dormance / Débourrement (Kc minimal)
-        if gdd_cumul < 200:
+        # 0 - 180 GDD : Dormance / Pointe verte (Kc minimal)
+        if gdd_cumul < 180:
             return 0.1
-        # 200 - 600 GDD : Croissance active (Kc monte vers 0.7)
-        elif gdd_cumul < 600:
-            return 0.1 + (0.6 * (gdd_cumul - 200) / 400)
-        # 600 - 1200 GDD : Floraison / Nouaison / Croissance baies (Kc plateau)
-        elif gdd_cumul < 1200:
-            return 0.7 + (0.1 * (gdd_cumul - 600) / 600) # Monte légèrement vers 0.8
-        # 1200 - 1500 GDD : Véraison (Kc commence à baisser)
+        # 180 - 750 GDD : Croissance active vers Floraison (Kc monte vers 0.7)
+        elif gdd_cumul < 750:
+            return 0.1 + (0.6 * (gdd_cumul - 180) / 570)
+        # 750 - 1500 GDD : Floraison / Nouaison / Croissance baies vers Véraison (Kc plateau)
         elif gdd_cumul < 1500:
-            return 0.8 - (0.4 * (gdd_cumul - 1200) / 300)
-        # > 1500 GDD : Maturation (Kc bas)
+            return 0.7 + (0.1 * (gdd_cumul - 750) / 750) # Monte vers 0.8
+        # 1500 - 1800 GDD : Véraison vers Maturité (Kc commence à baisser)
+        elif gdd_cumul < 1800:
+            return 0.8 - (0.4 * (gdd_cumul - 1500) / 300)
+        # > 1800 GDD : Maturation / Repos (Kc bas)
         else:
-            return max(0.3, 0.4 - (0.1 * (gdd_cumul - 1500) / 300))
+            return max(0.3, 0.4 - (0.1 * (gdd_cumul - 1800) / 300))
 
     @staticmethod
     def calculer_bilan_rfu(meteo_historique: Dict[str, Dict],
@@ -549,8 +556,21 @@ class GestionTraitements:
                    'dose_reference_kg_ha': 3.0, 'n_amm': '2080066'}
     }
     COEF_POUSSE = {
-        'repos': 0.0, 'debourrement': 0.5, 'pousse_10cm': 2.0, 'pre_floraison': 1.8,
-        'floraison': 1.0, 'nouaison': 0.8, 'fermeture_grappe': 0.5, 'veraison': 0.2, 'maturation': 0.1
+        'repos': 0.0,
+        'bourgeon_hiver': 0.0,
+        'bourgeon_coton': 0.1,
+        'pointe_verte': 0.5,
+        'sorties_feuilles': 1.0,
+        'feuilles_etalees': 2.0,
+        'grappes_visibles': 1.9,
+        'boutons_agglomeres': 1.8,
+        'boutons_separes': 1.5,
+        'floraison': 1.0,
+        'nouaison': 0.8,
+        'petits_pois': 0.6,
+        'fermeture_grappe': 0.4,
+        'veraison': 0.2,
+        'maturite': 0.1
     }
 
     def __init__(self, fichier_historique: str = 'traitements'):
@@ -989,9 +1009,20 @@ class SystemeDecision:
 
     METEO_HISTORIQUE_FILE = 'meteo_historique.json'
     GDD_STADE_MAP = {
-        180: 'debourrement', 300: 'pousse_10cm', 500: 'pre_floraison',
-        600: 'floraison', 750: 'nouaison', 900: 'fermeture_grappe',
-        1200: 'veraison', 1500: 'maturation', 1800: 'repos'
+        100: 'bourgeon_coton',
+        180: 'pointe_verte',
+        250: 'sorties_feuilles',
+        350: 'feuilles_etalees',
+        450: 'grappes_visibles',
+        550: 'boutons_agglomeres',
+        650: 'boutons_separes',
+        750: 'floraison',
+        900: 'nouaison',
+        1050: 'petits_pois',
+        1200: 'fermeture_grappe',
+        1500: 'veraison',
+        1800: 'maturite',
+        2100: 'repos'
     }
 
     def __init__(self):
@@ -1111,7 +1142,7 @@ class SystemeDecision:
         """
         try:
             if stade_manuel == 'repos':
-                return 0, 'repos', 180, 'debourrement', 'En dormance (calcul GDD inactif)'
+                return 0, 'repos', 180, 'pointe_verte', 'En dormance (calcul GDD inactif)'
 
             annee_actuelle = datetime.strptime(date_actuelle, '%Y-%m-%d').year
             aujourdhui = datetime.strptime(date_actuelle, '%Y-%m-%d').date()
@@ -1126,7 +1157,7 @@ class SystemeDecision:
                 if date_biofix_dt.year == annee_actuelle and date_biofix_dt.date() <= aujourdhui:
                     date_debut_gdd_str = date_biofix
                     mode_calcul = f"Biofix ({date_biofix})"
-                    # Jules : Si on utilise un Biofix manuel pour le débourrement, on part de 180 GDD (seuil débourrement)
+                    # Jules : Si on utilise un Biofix manuel (Pointe verte), on part de 180 GDD
                     gdd_initial = 180.0
 
             date_debut_gdd = datetime.strptime(date_debut_gdd_str, '%Y-%m-%d').date()
@@ -1640,7 +1671,7 @@ class SystemeDecision:
 
 def menu_maj_stade_et_date(systeme):
     """Menu interactif pour mettre à jour le stade et la date de débourrement (Biofix)."""
-    print("\n📅 MISE À JOUR STADE / DATE DÉBOURREMENT")
+    print("\n📅 MISE À JOUR STADE / DATE DÉBOURREMENT (BIOFIX)")
     print("-" * 70)
 
     print("\nParcelles disponibles :")
@@ -1670,8 +1701,8 @@ def menu_maj_stade_et_date(systeme):
         return
 
     date_debourrement = None
-    if nouveau_stade == 'debourrement':
-        date_input = input(f"Date d'observation du DÉBOURREMENT (AAAA-MM-JJ) ou [Entrée]=Aujourd'hui : ").strip()
+    if nouveau_stade == 'pointe_verte':
+        date_input = input(f"Date d'observation de la POINTE VERTE (Biofix GDD) (AAAA-MM-JJ) ou [Entrée]=Aujourd'hui : ").strip()
         if date_input:
             try:
                 datetime.strptime(date_input, '%Y-%m-%d')
