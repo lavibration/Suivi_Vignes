@@ -1033,8 +1033,10 @@ class SystemeDecision:
 
     SEUIL_ALERTE_PLUIE = 10  # mm
     SEUIL_PROTECTION_FAIBLE = 5  # /10
-    SEUIL_DECISION_HAUTE = 4.0  # /10
-    SEUIL_DECISION_MOYENNE = 2.0  # /10
+    SEUIL_DECISION_HAUTE = 5.0  # /10
+    SEUIL_DECISION_MOYENNE = 3.0  # /10
+    SEUIL_IPI_HAUT = 50
+    SEUIL_IPI_MOYEN = 30
 
     METEO_HISTORIQUE_FILE = 'meteo_historique.json'
     GDD_STADE_MAP = {
@@ -1436,13 +1438,18 @@ class SystemeDecision:
         if score_decision <= 0:
             decision = "Protection suffisante (Mildiou)"
             urgence = "faible"
+        elif ipi_present >= self.SEUIL_IPI_HAUT and score_decision >= self.SEUIL_DECISION_HAUTE:
+            decision = "TRAITEMENT URGENT (Mildiou)"
+            urgence = "haute"
+        elif ipi_present >= self.SEUIL_IPI_MOYEN and score_decision >= self.SEUIL_DECISION_MOYENNE:
+            decision = "TRAITEMENT PRÉVENTIF (Mildiou)"
+            urgence = "moyenne"
+        elif ipi_present < 20 and score_decision < 2.0:
+            decision = "Pas de traitement Mildiou nécessaire"
+            urgence = "faible"
         elif ipi_present > 0:
-            if score_decision >= self.SEUIL_DECISION_HAUTE:
-                decision = "TRAITEMENT URGENT (Mildiou)"
-                urgence = "haute"
-            else:
-                decision = "TRAITEMENT PRÉVENTIF (Mildiou)"
-                urgence = "moyenne"
+            decision = "Surveillance : risque modéré (Mildiou)"
+            urgence = "faible"
         else:
             if score_decision >= self.SEUIL_DECISION_HAUTE:
                 decision = "Risque théorique élevé : surveiller remontée des températures (Mildiou)"
