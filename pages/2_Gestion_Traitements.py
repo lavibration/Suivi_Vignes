@@ -116,7 +116,7 @@ try:
                     min_value=0.0,
                     value=p_surface,
                     step=0.01,
-                    key="surf_trait"
+                    key=f"surf_trait_{parcelle}"
                 )
             with col4:
                 mouillage = st.number_input(
