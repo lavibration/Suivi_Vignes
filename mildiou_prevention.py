@@ -1136,13 +1136,15 @@ class SystemeDecision:
                 # print(f"Ignoré {date_str} : données Open-Meteo manquantes")
                 continue
 
-            # Calcul température moyenne
+            # Calcul température moyenne (Méthode de Winkler modifiée)
+            # On ajuste Tmin à Tbase si la nuit est plus froide que le seuil d'activité
             if temp_max is not None and temp_min is not None:
-                temp_moy = (temp_max + temp_min) / 2
+                t_min_ajustee = max(temp_min, T_base)
+                temp_moy = (temp_max + t_min_ajustee) / 2
             elif temp_max is not None:
                 temp_moy = temp_max
             elif temp_min is not None:
-                temp_moy = temp_min
+                temp_moy = max(temp_min, T_base)
             else:
                 temp_moy = 0.0
 
@@ -1243,8 +1245,18 @@ class SystemeDecision:
 
         for i, date in enumerate(dates_futures):
             if date in meteo_historique and meteo_historique[date]:
-                temp_moy = meteo_historique[date].get('temp_moy', 0)
+                d = meteo_historique[date]
+                t_max = d.get('temp_max')
+                t_min = d.get('temp_min')
+
+                if t_max is not None and t_min is not None:
+                    t_min_ajustee = max(t_min, T_base)
+                    temp_moy = (t_max + t_min_ajustee) / 2
+                else:
+                    temp_moy = d.get('temp_moy', 0)
+
                 if temp_moy is None: temp_moy = 0.0
+
                 gdd_futur_cumul += max(0, temp_moy - T_base)
                 if gdd_futur_cumul >= gdd_necessaire:
                     jours_pour_atteindre = i + 1
