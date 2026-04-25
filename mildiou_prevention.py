@@ -406,18 +406,18 @@ class ModeleBilanHydrique:
         # 0 - 180 GDD : Dormance / Pointe verte (Kc minimal)
         if gdd_cumul < 180:
             return 0.1
-        # 180 - 660 GDD : Croissance active vers Floraison (Kc monte vers 0.7)
-        elif gdd_cumul < 660:
-            return 0.1 + (0.6 * (gdd_cumul - 180) / 480)
-        # 660 - 1450 GDD : Floraison / Nouaison / Croissance baies vers Véraison (Kc plateau)
-        elif gdd_cumul < 1450:
-            return 0.7 + (0.1 * (gdd_cumul - 660) / 790) # Monte vers 0.8
-        # 1450 - 1750 GDD : Véraison vers Maturité (Kc commence à baisser)
-        elif gdd_cumul < 1750:
-            return 0.8 - (0.4 * (gdd_cumul - 1450) / 300)
-        # > 1750 GDD : Maturation / Repos (Kc bas)
+        # 180 - 550 GDD : Croissance active vers Floraison (Kc monte vers 0.7)
+        elif gdd_cumul < 550:
+            return 0.1 + (0.6 * (gdd_cumul - 180) / 370)
+        # 550 - 1160 GDD : Floraison / Nouaison / Croissance baies vers Véraison (Kc plateau)
+        elif gdd_cumul < 1160:
+            return 0.7 + (0.1 * (gdd_cumul - 550) / 610) # Monte vers 0.8
+        # 1160 - 1390 GDD : Véraison vers Maturité (Kc commence à baisser)
+        elif gdd_cumul < 1390:
+            return 0.8 - (0.4 * (gdd_cumul - 1160) / 230)
+        # > 1390 GDD : Maturation / Repos (Kc bas)
         else:
-            return max(0.3, 0.4 - (0.1 * (gdd_cumul - 1750) / 300))
+            return max(0.3, 0.4 - (0.1 * (gdd_cumul - 1390) / 300))
 
     @staticmethod
     def calculer_bilan_rfu(meteo_historique: Dict[str, Dict],
@@ -1041,18 +1041,18 @@ class SystemeDecision:
     METEO_HISTORIQUE_FILE = 'meteo_historique.json'
     GDD_STADE_MAP = {
         100: 'bourgeon_coton',     # Stade B
-        180: 'pointe_verte',       # Stade C (Biofix)
-        240: 'sorties_feuilles',   # Stade D
-        310: 'feuilles_etalees',   # Stade E
-        400: 'grappes_visibles',   # Stade F
-        480: 'boutons_agglomeres', # Stade G
-        560: 'boutons_separes',    # Stade H
-        660: 'floraison',          # Stade I
-        820: 'nouaison',           # Stade J
-        980: 'petits_pois',        # Stade K
-        1150: 'fermeture_grappe',  # Stade L
-        1450: 'veraison',          # Stade M
-        1750: 'maturite',          # Stade N
+        180: 'pointe_verte',       # Stade C (Biofix - Inchangé)
+        230: 'sorties_feuilles',   # Stade D (Ajusté)
+        280: 'feuilles_etalees',   # Stade E (Ajusté)
+        350: 'grappes_visibles',   # Stade F (Cible)
+        410: 'boutons_agglomeres', # Stade G (Ajusté)
+        470: 'boutons_separes',    # Stade H (Ajusté)
+        550: 'floraison',          # Stade I (Ajusté)
+        670: 'nouaison',           # Stade J (Ajusté)
+        800: 'petits_pois',        # Stade K (Ajusté)
+        930: 'fermeture_grappe',   # Stade L (Ajusté)
+        1160: 'veraison',          # Stade M (Ajusté)
+        1390: 'maturite',          # Stade N (Ajusté)
         2100: 'repos'
     }
 
