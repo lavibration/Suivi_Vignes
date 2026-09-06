@@ -7,6 +7,7 @@ Cette application peut maintenant utiliser une Google Sheet comme base de donné
 2. Créez les onglets suivants :
    - `traitements`
    - `vendanges`
+   - `tickets`
    - `meteo`
    - `alertes`
    - `gdd`
@@ -52,7 +53,10 @@ L'application gère automatiquement la création des colonnes lors de la premiè
 - `parcelle`, `date`, `heure`, `culture`, `systeme_culture`, `produit`, `n_amm` (via `caracteristiques`), `dose_kg_ha`, `mouillage_pct`, `surface_traitee`, `type_utilisation`, `cible`, `conditions_meteo`, `applicateur`.
 
 ### Onglet `vendanges`
-- `annee`, `type` (CAMPAGNE ou TICKET), et les métriques associées (poids, degré, etc.).
+- Consolidation des campagnes (1 ligne par an) : `annee`, `status`, `rdt_theo`, `prix_u`, `prime_u`, `frais_vinif_u`, `prix_hl_deg_vdp`, `prix_hl_deg_vdt`, `total_ha`, `notes_surface`, `validee`, `hl_reel`, `prix_u_reel`, `prime_reelle`, `frais_reels`, `date_validation`, `poids_kg_hist`, `hl_hist`, `degre_moyen_hist`, `ca_brut_hist`, `ca_net_hist`, `total_ha_hist`, `euro_hl_hist`, `poids_ha_hist`, `rendement_reel_hist`.
+
+### Onglet `tickets`
+- Détail de chaque ticket individuel de pesée : `annee`, `id`, `date`, `num_ticket`, `poids_kg`, `degre`, `categorie`, `volume_hl`, `hl_degres`, `prix_unitaire_applique`, `montant_estime_eur`, `notes`.
 
 ### Onglet `config`
 - Une colonne `json_content` contenant toute la configuration technique.
