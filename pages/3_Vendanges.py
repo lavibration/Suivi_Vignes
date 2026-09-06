@@ -35,11 +35,22 @@ class GestionVendanges:
         self.donnees = self.charger_donnees()
 
     def charger_donnees(self):
-        """Charge les données vendanges via DataManager"""
+        """Charge les données vendanges via DataManager et force les paramètres pour les campagnes en cours"""
         data = self.storage.load_data(self.key, default_factory=self.creer_structure_defaut)
         # Migration : supprimer campagne_courante si elle existe
         if 'campagne_courante' in data:
             del data['campagne_courante']
+
+        # Migration : forcer la mise à jour des paramètres pour les campagnes "en_cours" / non validées
+        for c in data.get('campagnes', []):
+            if c.get('status') == 'en_cours' or not c.get('validation', {}).get('validee', False):
+                c['parametres'] = {
+                    'rendement_theorique': 73.0,
+                    'prix_hl_deg_vdp': 6.2837,
+                    'prix_hl_deg_vdt': 5.2713,
+                    'frais_vinif_u': 0.1573,
+                    'prime_u': 0.0847
+                }
         return data
 
     def creer_structure_defaut(self):
@@ -90,11 +101,10 @@ class GestionVendanges:
             'tickets': [],
             'parametres': {
                 'rendement_theorique': 73.0,
-                'prix_u': 100.0000,
+                'prix_hl_deg_vdp': 6.2837,
+                'prix_hl_deg_vdt': 5.2713,
                 'frais_vinif_u': 0.1573,
-                'prime_u': 0.0847,
-                'prix_hl_deg_vdp': 6.28,
-                'prix_hl_deg_vdt': 5.2713
+                'prime_u': 0.0847
             },
             'surface_vendangee': {
                 'total_ha': 2.05,
@@ -116,7 +126,7 @@ class GestionVendanges:
 
     def calculer_metriques_ticket(self, poids_kg, degre, params):
         """Calcule la catégorie, le volume hL, les hL.° et le montant estimé d'un ticket basé sur le rendement jus (73%)"""
-        prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
+        prix_vdp = params.get('prix_hl_deg_vdp', 6.2837)
         prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
         rdt_theo = params.get('rendement_theorique', 73.0)
         rdt_ratio = (rdt_theo / 100.0) if rdt_theo > 1 else (rdt_theo if rdt_theo > 0 else 0.73)
@@ -177,7 +187,7 @@ class GestionVendanges:
 
         tickets = campagne['tickets']
         params = campagne.get('parametres', {})
-        prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
+        prix_vdp = params.get('prix_hl_deg_vdp', 6.2837)
         prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
         rdt_theo = params.get('rendement_theorique', 73.0)
         rdt_ratio = (rdt_theo / 100.0) if rdt_theo > 1 else (rdt_theo if rdt_theo > 0 else 0.73)
@@ -378,12 +388,10 @@ class GestionVendanges:
                 'tickets': [],
                 'parametres': {
                     'rendement_theorique': rendement_jus,
-                    'prix_u': prix_u,
                     'frais_vinif_u': frais_u,
                     'prime_u': prime_u,
-                    'prix_hl_deg_vdp': 6.28,
-                    'prix_hl_deg_vdt': 5.2713,
-                    'ratio_kg_hl': 130.0
+                    'prix_hl_deg_vdp': 6.2837,
+                    'prix_hl_deg_vdt': 5.2713
                 },
                 'validation': {
                     'validee': True,
@@ -787,7 +795,7 @@ elif selected_tab == tab_titles[1]:
                 prix_vdp_val = st.number_input(
                     "Prix hL.° VDP (€)",
                     min_value=0.0,
-                    value=campagne['parametres'].get('prix_hl_deg_vdp', 6.28),
+                    value=campagne['parametres'].get('prix_hl_deg_vdp', 6.2837),
                     step=0.0001,
                     format="%.4f",
                     key=f"prix_vdp_{annee_selectionnee}",
@@ -816,20 +824,10 @@ elif selected_tab == tab_titles[1]:
                     disabled=campagne['validation']['validee']
                 )
 
-                prix_u = st.number_input(
-                    "Prix U Coopérative (€/Hl°)",
-                    min_value=0.0,
-                    value=campagne['parametres']['prix_u'],
-                    step=0.0001,
-                    format="%.4f",
-                    key=f"prix_u_{annee_selectionnee}",
-                    disabled=campagne['validation']['validee']
-                )
-
                 prime_u = st.number_input(
                     "Prime U (€/kg)",
                     min_value=0.0,
-                    value=campagne['parametres'].get('prime_u', 0.0),
+                    value=campagne['parametres'].get('prime_u', 0.0847),
                     step=0.0001,
                     format="%.4f",
                     help="Prime par kilogramme de raisin",
@@ -840,7 +838,7 @@ elif selected_tab == tab_titles[1]:
                 frais_u = st.number_input(
                     "Frais vinification U (€/kg)",
                     min_value=0.0,
-                    value=campagne['parametres']['frais_vinif_u'],
+                    value=campagne['parametres'].get('frais_vinif_u', 0.1573),
                     step=0.0001,
                     format="%.4f",
                     help="Frais par kilogramme de raisin",
@@ -853,7 +851,6 @@ elif selected_tab == tab_titles[1]:
                         campagne['parametres']['prix_hl_deg_vdp'] = prix_vdp_val
                         campagne['parametres']['prix_hl_deg_vdt'] = prix_vdt_val
                         campagne['parametres']['rendement_theorique'] = rdt_theo
-                        campagne['parametres']['prix_u'] = prix_u
                         campagne['parametres']['prime_u'] = prime_u
                         campagne['parametres']['frais_vinif_u'] = frais_u
                         vendanges.sauvegarder()
@@ -965,7 +962,7 @@ elif selected_tab == tab_titles[1]:
                         prix_u_reel = st.number_input(
                             "Prix U Réel (€/Hl°)",
                             min_value=0.0,
-                            value=prix_u,
+                            value=campagne.get('parametres', {}).get('prix_hl_deg_vdp', 6.2837),
                             step=0.0001,
                             format="%.4f"
                         )
