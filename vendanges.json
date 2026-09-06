@@ -8,7 +8,9 @@
         "rendement_theorique": null,
         "prix_u": 5.0962,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0663
+        "prime_u": 0.0663,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -39,7 +41,9 @@
         "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0782
+        "prime_u": 0.0782,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -70,7 +74,9 @@
         "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0782
+        "prime_u": 0.0782,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -101,7 +107,9 @@
         "rendement_theorique": null,
         "prix_u": 6.0136,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0782
+        "prime_u": 0.0782,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -132,7 +140,9 @@
         "rendement_theorique": 0.7202770764254528,
         "prix_u": 5.5608,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.07
+        "prime_u": 0.07,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -163,7 +173,9 @@
         "rendement_theorique": 0.7282275231655397,
         "prix_u": 6.9156,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0899
+        "prime_u": 0.0899,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -194,7 +206,9 @@
         "rendement_theorique": 0.7465069860279441,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.085
+        "prime_u": 0.085,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -225,7 +239,9 @@
         "rendement_theorique": 0.7145680560477605,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -256,7 +272,9 @@
         "rendement_theorique": 0.7173961840628507,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -287,7 +305,9 @@
         "rendement_theorique": 0.768045569147446,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -318,7 +338,9 @@
         "rendement_theorique": 0.7477999999999999,
         "prix_u": 6.143244588763828,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -349,7 +371,9 @@
         "rendement_theorique": 0.750068705888133,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -380,7 +404,9 @@
         "rendement_theorique": 0.7332213772017622,
         "prix_u": 6.2837,
         "frais_vinif_u": 0.1573,
-        "prime_u": 0.0847
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "validation": {
         "validee": true,
@@ -405,29 +431,63 @@
     },
     {
       "annee": 2025,
-      "status": "validee",
+      "status": "en_cours",
       "tickets": [
         {
-          "date": "2025-11-08",
-          "num_ticket": "T20251108",
-          "poids_kg": 18000,
-          "degre": 12.499999999999998,
-          "notes": "",
-          "id": 1
+          "id": 1,
+          "date": "2025-09-10",
+          "num_ticket": "T001",
+          "poids_kg": 7560,
+          "degre": 12.1,
+          "notes": ""
+        },
+        {
+          "id": 2,
+          "date": "2025-09-11",
+          "num_ticket": "T002",
+          "poids_kg": 2050,
+          "degre": 11.6,
+          "notes": ""
+        },
+        {
+          "id": 3,
+          "date": "2025-09-12",
+          "num_ticket": "T003",
+          "poids_kg": 6600,
+          "degre": 12.5,
+          "notes": ""
+        },
+        {
+          "id": 4,
+          "date": "2025-09-13",
+          "num_ticket": "T004",
+          "poids_kg": 2280,
+          "degre": 11.7,
+          "notes": ""
+        },
+        {
+          "id": 5,
+          "date": "2025-09-14",
+          "num_ticket": "T005",
+          "poids_kg": 2450,
+          "degre": 11.0,
+          "notes": ""
         }
       ],
       "parametres": {
         "rendement_theorique": 73.0,
-        "prix_u": 6.78,
-        "frais_vinif_u": 0.16,
-        "prime_u": 0.08
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "surface_vendangee": {
         "total_ha": 2.05,
         "notes": ""
       },
       "validation": {
-        "validee": true,
+        "validee": false,
         "hl_reel": 1642.4999999999998,
         "prix_u_reel": 6.78,
         "frais_reels": 2880.0,
@@ -456,9 +516,11 @@
       "tickets": [],
       "parametres": {
         "rendement_theorique": 73.0,
-        "prix_u": 100.0,
-        "frais_vinif_u": 15.73,
-        "prime_u": 0.0
+        "prix_u": 6.2837,
+        "frais_vinif_u": 0.1573,
+        "prime_u": 0.0847,
+        "prix_hl_deg_vdp": 6.2837,
+        "prix_hl_deg_vdt": 5.2713
       },
       "surface_vendangee": {
         "total_ha": 2.05,
