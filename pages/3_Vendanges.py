@@ -950,6 +950,10 @@ elif selected_tab == tab_titles[1]:
 
                     col_v1, col_v2 = st.columns(2)
 
+                    hl_calc = totaux['hl_degres_total'] if totaux else 0.0
+                    prime_calc = totaux['prime_total'] if totaux else 0.0
+                    frais_calc = totaux['frais_total'] if totaux else 0.0
+
                     with col_v1:
                         hl_reel = st.number_input(
                             "Hl° Réel (facturé)",
@@ -977,7 +981,7 @@ elif selected_tab == tab_titles[1]:
                         frais_reels = st.number_input(
                             "Frais Réels (€ total)",
                             min_value=0.0,
-                            value=frais_total,
+                            value=frais_calc,
                             step=0.01
                         )
 
