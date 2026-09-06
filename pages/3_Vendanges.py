@@ -91,11 +91,10 @@ class GestionVendanges:
             'parametres': {
                 'rendement_theorique': 73.0,
                 'prix_u': 100.0000,
-                'frais_vinif_u': 15.7300,
-                'prime_u': 0.0000,
+                'frais_vinif_u': 0.1573,
+                'prime_u': 0.0847,
                 'prix_hl_deg_vdp': 6.28,
-                'prix_hl_deg_vdt': 5.2713,
-                'ratio_kg_hl': 130.0
+                'prix_hl_deg_vdt': 5.2713
             },
             'surface_vendangee': {
                 'total_ha': 2.05,
@@ -116,14 +115,20 @@ class GestionVendanges:
         return campagne
 
     def calculer_metriques_ticket(self, poids_kg, degre, params):
-        """Calcule la catégorie, le volume hL, les hL.° et le montant estimé d'un ticket"""
+        """Calcule la catégorie, le volume hL, les hL.° et le montant estimé d'un ticket basé sur le rendement jus (73%)"""
         prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
         prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
-        ratio = params.get('ratio_kg_hl', 130.0)
+        rdt_theo = params.get('rendement_theorique', 73.0)
+        rdt_ratio = (rdt_theo / 100.0) if rdt_theo > 1 else (rdt_theo if rdt_theo > 0 else 0.73)
 
         categorie = "VDP" if degre >= 10.5 else "VDT"
-        volume_hl = round(poids_kg / ratio, 2) if ratio > 0 else 0.0
-        hl_degres = volume_hl * degre
+
+        # Volume hL = Poids en kg × rendement jus / 100
+        volume_hl = (poids_kg * rdt_ratio) / 100.0
+
+        # Hl° = Poids kg × Degré × rendement jus / 100
+        hl_degres = (poids_kg * degre * rdt_ratio) / 100.0
+
         prix_unitaire = prix_vdp if categorie == "VDP" else prix_vdt
         montant_estime = hl_degres * prix_unitaire
 
@@ -165,7 +170,7 @@ class GestionVendanges:
             self.sauvegarder()
 
     def calculer_totaux(self, annee):
-        """Calcule les totaux d'une campagne"""
+        """Calcule les totaux d'une campagne selon les règles exactes de valorisation"""
         campagne = self.get_campagne(annee)
         if not campagne or not campagne['tickets']:
             return None
@@ -174,7 +179,8 @@ class GestionVendanges:
         params = campagne.get('parametres', {})
         prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
         prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
-        ratio = params.get('ratio_kg_hl', 130.0)
+        rdt_theo = params.get('rendement_theorique', 73.0)
+        rdt_ratio = (rdt_theo / 100.0) if rdt_theo > 1 else (rdt_theo if rdt_theo > 0 else 0.73)
 
         # Mettre à jour / recalculer métriques par ticket
         for t in tickets:
@@ -203,25 +209,26 @@ class GestionVendanges:
 
         ca_vdp_estime = sum(t['montant_estime_eur'] for t in tickets if t['categorie'] == 'VDP')
         ca_vdt_estime = sum(t['montant_estime_eur'] for t in tickets if t['categorie'] == 'VDT')
-        ca_total_estime = sum(t['montant_estime_eur'] for t in tickets)
+        ca_brut = ca_vdp_estime + ca_vdt_estime
 
-        prix_moyen_pondere_hl_deg = (ca_total_estime / hl_degres_total) if hl_degres_total > 0 else 0.0
+        prix_moyen_pondere_hl_deg = (ca_brut / hl_degres_total) if hl_degres_total > 0 else 0.0
 
-        rdt = params.get('rendement_theorique', 73.0) / 100
-        hl_estime = (poids_total * degre_moyen * rdt) / 100
-        production_litres = poids_total * rdt
+        # Production en Litres = Poids total × Rendement Jus (0.73)
+        production_litres = poids_total * rdt_ratio
 
-        prix_u = params.get('prix_u', 100.0)
-        prime_u = params.get('prime_u', 0.0)
-        frais_u = params.get('frais_vinif_u', 15.73)
+        # Primes et Frais
+        prime_u = params.get('prime_u', 0.0847)
+        frais_u = params.get('frais_vinif_u', 0.1573)
 
         prime_total = prime_u * poids_total
-        ca_brut = (hl_estime * prix_u) + prime_total
         frais_total = frais_u * poids_total
-        revenu_net = ca_brut - frais_total
 
-        euro_par_litre = revenu_net / production_litres if production_litres > 0 else 0.0
-        euro_par_hl = euro_par_litre * 100
+        # Revenu Net = CA Brut (Revenus théoriques) + Primes - Frais
+        revenu_net = ca_brut + prime_total - frais_total
+
+        # Prix €/L = Revenu Net / Production en Litres
+        euro_par_litre = (revenu_net / production_litres) if production_litres > 0 else 0.0
+        euro_par_hl = euro_par_litre * 100.0
 
         return {
             'nb_tickets': len(tickets),
@@ -241,11 +248,11 @@ class GestionVendanges:
             'hl_degres_total': hl_degres_total,
             'ca_vdp_estime': ca_vdp_estime,
             'ca_vdt_estime': ca_vdt_estime,
-            'ca_total_estime': ca_total_estime,
-            'prix_moyen_pondere_hl_deg': prix_moyen_pondere_hl_deg,
-            'hl_estime': hl_estime,
-            'production_litres': production_litres,
+            'ca_total_estime': ca_brut,
             'ca_brut': ca_brut,
+            'prix_moyen_pondere_hl_deg': prix_moyen_pondere_hl_deg,
+            'hl_estime': hl_degres_total,
+            'production_litres': production_litres,
             'prime_total': prime_total,
             'frais_total': frais_total,
             'revenu_net': revenu_net,
@@ -464,7 +471,7 @@ def afficher_synthese_campagne(totaux):
     with kpi2:
         st.metric("🌡️ Degré Moyen Pondéré", f"{totaux['degre_moyen']:.2f}°")
     with kpi3:
-        st.metric("💰 CA Total Estimé", f"{totaux['ca_total_estime']:,.2f} €")
+        st.metric("💰 CA Brut Estimé", f"{totaux['ca_brut']:,.2f} €")
     with kpi4:
         st.metric("🏷️ Prix Moyen / hL.°", f"{totaux['prix_moyen_pondere_hl_deg']:.4f} €")
 
@@ -475,23 +482,23 @@ def afficher_synthese_campagne(totaux):
     with col_vdp:
         st.markdown("#### 🟢 Catégorie VDP (>= 10.5°)")
         st.write(f"**Tonnage :** {totaux['poids_vdp']:,.0f} kg ({totaux['pct_poids_vdp']:.1f}%)")
-        st.write(f"**Volume :** {totaux['volume_vdp_hl']:.2f} hL ({totaux['pct_volume_vdp']:.1f}%)")
+        st.write(f"**Volume Jus :** {totaux['volume_vdp_hl']:.2f} hL ({totaux['pct_volume_vdp']:.1f}%)")
         st.write(f"**Cumul hL.° :** {totaux['hl_degres_vdp']:.2f}")
         st.write(f"**Montant Estimé :** {totaux['ca_vdp_estime']:,.2f} €")
 
     with col_vdt:
         st.markdown("#### 🟠 Catégorie VDT (< 10.5°)")
         st.write(f"**Tonnage :** {totaux['poids_vdt']:,.0f} kg ({totaux['pct_poids_vdt']:.1f}%)")
-        st.write(f"**Volume :** {totaux['volume_vdt_hl']:.2f} hL ({totaux['pct_volume_vdt']:.1f}%)")
+        st.write(f"**Volume Jus :** {totaux['volume_vdt_hl']:.2f} hL ({totaux['pct_volume_vdt']:.1f}%)")
         st.write(f"**Cumul hL.° :** {totaux['hl_degres_vdt']:.2f}")
         st.write(f"**Montant Estimé :** {totaux['ca_vdt_estime']:,.2f} €")
 
     with col_cumul:
-        st.markdown("#### 🍷 Total Cumulé & Performance")
-        st.write(f"**Volume Total :** {totaux['volume_total_hl']:.2f} hL")
+        st.markdown("#### 🍷 Valorisation Net & Performance")
+        st.write(f"**Volume Jus Total :** {totaux['volume_total_hl']:.2f} hL ({totaux['production_litres']:,.0f} L)")
         st.write(f"**Cumul Total hL.° :** {totaux['hl_degres_total']:.2f}")
-        st.write(f"**CA Total Estimé :** {totaux['ca_total_estime']:,.2f} €")
-        st.write(f"**Prix Moyen Récolte :** {totaux['prix_moyen_pondere_hl_deg']:.4f} € / hL.°")
+        st.write(f"**Revenu Net Estimé :** {totaux['revenu_net']:,.2f} €")
+        st.write(f"**Prix / Litre (Jus) :** {totaux['euro_par_litre']:.4f} € / L ({totaux['euro_par_hl']:.2f} €/hL)")
 
 
 # ========================================
@@ -507,7 +514,8 @@ if selected_tab == tab_titles[0]:
     params_active = campagne_active.get('parametres', {})
     prix_vdp_act = params_active.get('prix_hl_deg_vdp', 6.28)
     prix_vdt_act = params_active.get('prix_hl_deg_vdt', 5.2713)
-    ratio_act = params_active.get('ratio_kg_hl', 130.0)
+    rdt_act = params_active.get('rendement_theorique', 73.0)
+    rdt_ratio_act = (rdt_act / 100.0) if rdt_act > 1 else (rdt_act if rdt_act > 0 else 0.73)
 
     with col_form:
         st.markdown("**Nouveau Ticket de Vendange**")
@@ -564,17 +572,18 @@ if selected_tab == tab_titles[0]:
 
         # Aperçu calculé en temps réel sur le formulaire
         cat_preview = "VDP" if degre >= 10.5 else "VDT"
-        vol_preview = round(poids / ratio_act, 2) if ratio_act > 0 else 0.0
-        hldeg_preview = vol_preview * degre
+        vol_preview = (poids * rdt_ratio_act) / 100.0
+        hldeg_preview = (poids * degre * rdt_ratio_act) / 100.0
         pu_preview = prix_vdp_act if cat_preview == "VDP" else prix_vdt_act
         montant_preview = hldeg_preview * pu_preview
+        vol_hl_preview = vol_preview
 
         st.markdown("##### 🔍 Aperçu Calculé du Ticket")
         pcol1, pcol2, pcol3, pcol4 = st.columns(4)
         with pcol1:
             st.metric("Catégorie", cat_preview)
         with pcol2:
-            st.metric("Volume Estimé", f"{vol_preview:.2f} hL")
+            st.metric("Volume Jus Estimé", f"{vol_hl_preview:.2f} hL")
         with pcol3:
             st.metric("hL.° Générés", f"{hldeg_preview:.2f}")
         with pcol4:
@@ -719,6 +728,52 @@ elif selected_tab == tab_titles[1]:
             totaux = vendanges.calculer_totaux(annee_selectionnee)
             afficher_synthese_campagne(totaux)
 
+            # Détail des tickets de la campagne
+            st.markdown("---")
+            st.subheader(f"🎫 Tickets Détaillés de la Récolte {annee_selectionnee}")
+
+            if campagne['tickets']:
+                df_t_sel = pd.DataFrame(campagne['tickets'])
+                df_t_sel['date'] = pd.to_datetime(df_t_sel['date']).dt.strftime('%d/%m/%Y')
+
+                df_t_sel['Catégorie'] = df_t_sel['categorie'].apply(
+                    lambda cat: "🟢 VDP" if cat == "VDP" else "🟠 VDT"
+                )
+                df_t_sel['Volume (hL)'] = df_t_sel['volume_hl'].apply(lambda x: f"{x:.2f}")
+                df_t_sel['hL.°'] = df_t_sel['hl_degres'].apply(lambda x: f"{x:.2f}")
+                df_t_sel['Montant (€)'] = df_t_sel['montant_estime_eur'].apply(lambda x: f"{x:,.2f} €")
+
+                cols_map = {
+                    'date': 'Date',
+                    'num_ticket': 'N° Ticket',
+                    'poids_kg': 'Poids (kg)',
+                    'degre': 'Degré (°)',
+                    'Catégorie': 'Catégorie',
+                    'Volume (hL)': 'Volume (hL)',
+                    'hL.°': 'hL.°',
+                    'Montant (€)': 'Montant (€)',
+                    'notes': 'Notes'
+                }
+
+                df_show_sel = df_t_sel[[c for c in cols_map.keys() if c in df_t_sel.columns]].rename(columns=cols_map)
+
+                st.dataframe(
+                    df_show_sel,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+                csv_tickets = df_show_sel.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label=f"📥 Télécharger le détail des tickets {annee_selectionnee} (CSV)",
+                    data=csv_tickets,
+                    file_name=f"tickets_vendanges_{annee_selectionnee}.csv",
+                    mime="text/csv",
+                    key=f"dl_tickets_{annee_selectionnee}"
+                )
+            else:
+                st.info(f"Aucun ticket individuel saisi pour la campagne {annee_selectionnee}.")
+
             st.markdown("---")
 
             # Paramètres et calculs financiers
@@ -749,23 +804,14 @@ elif selected_tab == tab_titles[1]:
                     disabled=campagne['validation']['validee']
                 )
 
-                ratio_val = st.number_input(
-                    "Ratio Poids/Volume (kg / hL)",
-                    min_value=1.0,
-                    value=campagne['parametres'].get('ratio_kg_hl', 130.0),
-                    step=0.1,
-                    format="%.1f",
-                    key=f"ratio_kg_{annee_selectionnee}",
-                    disabled=campagne['validation']['validee']
-                )
-
                 rdt_theo = st.number_input(
-                    "Rendement théorique (%)",
+                    "Rendement jus théorique (%)",
                     min_value=60.0,
                     max_value=80.0,
-                    value=campagne['parametres']['rendement_theorique'],
+                    value=campagne['parametres'].get('rendement_theorique', 73.0),
                     step=0.1,
                     format="%.1f",
+                    help="Pourcentage de jus extrait du raisin (73% par défaut)",
                     key=f"rdt_theo_{annee_selectionnee}",
                     disabled=campagne['validation']['validee']
                 )
@@ -806,7 +852,6 @@ elif selected_tab == tab_titles[1]:
                     if st.button("💾 Sauvegarder Paramètres", key=f"save_params_{annee_selectionnee}"):
                         campagne['parametres']['prix_hl_deg_vdp'] = prix_vdp_val
                         campagne['parametres']['prix_hl_deg_vdt'] = prix_vdt_val
-                        campagne['parametres']['ratio_kg_hl'] = ratio_val
                         campagne['parametres']['rendement_theorique'] = rdt_theo
                         campagne['parametres']['prix_u'] = prix_u
                         campagne['parametres']['prime_u'] = prime_u
@@ -816,36 +861,20 @@ elif selected_tab == tab_titles[1]:
                         st.rerun()
 
             with col_param2:
-                st.markdown("**Résultats Financiers (Estimation)**")
+                st.markdown("**Résultats Financiers & Valorisation**")
 
-                # Recalculer avec params actuels
-                hl_calc = (totaux['poids_total'] * totaux['degre_moyen'] * (rdt_theo/100)) / 100
-                production_litres = totaux['poids_total'] * (rdt_theo/100)
-
-                prime_calc = prime_u * totaux['poids_total']
-                ca_brut = (hl_calc * prix_u) + prime_calc
-                frais_total = frais_u * totaux['poids_total']
-                revenu_net = ca_brut - frais_total
-
-                euro_par_litre = revenu_net / production_litres if production_litres > 0 else 0
-                euro_par_hl = euro_par_litre * 100
-
-                surface_ha = campagne.get('surface_vendangee', {}).get('total_ha', surface_totale)
-                ca_ha = ca_brut / surface_ha if surface_ha > 0 else 0
-
-                st.metric("Hl° (recalculé)", f"{hl_calc:.1f}")
-                st.metric("Production Litres", f"{production_litres or 0:,.0f} L")
-                st.metric("Prime Totale", f"{prime_calc:,.2f} €")
-                st.metric("CA Brut", f"{ca_brut or 0:,.0f} €")
-                st.metric("Frais Vinification", f"{frais_total or 0:,.0f} €")
-                st.metric("**Revenu Net**", f"**{revenu_net:,.0f} €**")
+                st.metric("Hl° Cumulés", f"{totaux['hl_degres_total']:.2f}")
+                st.metric("Production Jus", f"{totaux['production_litres']:,.0f} L ({totaux['volume_total_hl']:.2f} hL)")
+                st.metric("Revenus Théoriques (CA Brut)", f"{totaux['ca_brut']:,.2f} €")
+                st.metric("Prime Totale", f"{totaux['prime_total']:,.2f} €")
+                st.metric("Frais Vinification", f"{totaux['frais_total']:,.2f} €")
+                st.metric("**Revenu Net**", f"**{totaux['revenu_net']:,.2f} €**")
 
                 col_ind1, col_ind2 = st.columns(2)
                 with col_ind1:
-                    st.metric("CA/Ha", f"{ca_ha or 0:,.0f} €/ha")
-                    st.metric("€/Litre", f"{euro_par_litre or 0:.2f} €/L")
+                    st.metric("Prix € / Litre", f"{totaux['euro_par_litre']:.4f} €/L")
                 with col_ind2:
-                    st.metric("€/Hl", f"{euro_par_hl:.0f} €/Hl")
+                    st.metric("Prix € / hL", f"{totaux['euro_par_hl']:.2f} €/hL")
 
             # Surface vendangée
             st.markdown("---")
