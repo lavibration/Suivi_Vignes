@@ -728,6 +728,52 @@ elif selected_tab == tab_titles[1]:
             totaux = vendanges.calculer_totaux(annee_selectionnee)
             afficher_synthese_campagne(totaux)
 
+            # Détail des tickets de la campagne
+            st.markdown("---")
+            st.subheader(f"🎫 Tickets Détaillés de la Récolte {annee_selectionnee}")
+
+            if campagne['tickets']:
+                df_t_sel = pd.DataFrame(campagne['tickets'])
+                df_t_sel['date'] = pd.to_datetime(df_t_sel['date']).dt.strftime('%d/%m/%Y')
+
+                df_t_sel['Catégorie'] = df_t_sel['categorie'].apply(
+                    lambda cat: "🟢 VDP" if cat == "VDP" else "🟠 VDT"
+                )
+                df_t_sel['Volume (hL)'] = df_t_sel['volume_hl'].apply(lambda x: f"{x:.2f}")
+                df_t_sel['hL.°'] = df_t_sel['hl_degres'].apply(lambda x: f"{x:.2f}")
+                df_t_sel['Montant (€)'] = df_t_sel['montant_estime_eur'].apply(lambda x: f"{x:,.2f} €")
+
+                cols_map = {
+                    'date': 'Date',
+                    'num_ticket': 'N° Ticket',
+                    'poids_kg': 'Poids (kg)',
+                    'degre': 'Degré (°)',
+                    'Catégorie': 'Catégorie',
+                    'Volume (hL)': 'Volume (hL)',
+                    'hL.°': 'hL.°',
+                    'Montant (€)': 'Montant (€)',
+                    'notes': 'Notes'
+                }
+
+                df_show_sel = df_t_sel[[c for c in cols_map.keys() if c in df_t_sel.columns]].rename(columns=cols_map)
+
+                st.dataframe(
+                    df_show_sel,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+                csv_tickets = df_show_sel.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label=f"📥 Télécharger le détail des tickets {annee_selectionnee} (CSV)",
+                    data=csv_tickets,
+                    file_name=f"tickets_vendanges_{annee_selectionnee}.csv",
+                    mime="text/csv",
+                    key=f"dl_tickets_{annee_selectionnee}"
+                )
+            else:
+                st.info(f"Aucun ticket individuel saisi pour la campagne {annee_selectionnee}.")
+
             st.markdown("---")
 
             # Paramètres et calculs financiers
