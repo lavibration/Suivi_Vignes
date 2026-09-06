@@ -103,9 +103,23 @@ class DataManager:
 
         if self.use_gsheets:
             try:
-                tab_name = self._get_tab_name(key)
-                df = self._json_to_df(key, data)
-                self.conn.update(worksheet=tab_name, data=df)
+                if key == 'vendanges':
+                    # Onglet vendanges : consolidation campagnes uniquement
+                    df_campagnes = self._json_to_df('vendanges', data)
+                    self.conn.update(worksheet='vendanges', data=df_campagnes)
+
+                    # Onglet tickets : tickets individuels
+                    df_tickets = self._json_to_df('tickets', data)
+                    if df_tickets is not None and not df_tickets.empty:
+                        try:
+                            self.conn.update(worksheet='tickets', data=df_tickets)
+                        except Exception as e_t:
+                            pass
+                else:
+                    tab_name = self._get_tab_name(key)
+                    df = self._json_to_df(key, data)
+                    self.conn.update(worksheet=tab_name, data=df)
+
                 # Invalider le cache après une écriture
                 st.cache_data.clear()
             except Exception as e:
@@ -208,70 +222,101 @@ class DataManager:
 
         elif key == 'vendanges':
             campagnes = []
+            tickets_by_annee = {}
+
+            # Lire l'onglet 'tickets' séparé s'il existe sur GSheets
+            if self.use_gsheets:
+                try:
+                    df_tickets_gs = self.conn.read(worksheet='tickets', ttl=10)
+                    if df_tickets_gs is not None and not df_tickets_gs.empty and 'annee' in df_tickets_gs.columns:
+                        df_tickets_gs = df_tickets_gs.loc[:, ~df_tickets_gs.columns.str.contains('^Unnamed')]
+                        for annee_val, group in df_tickets_gs.groupby('annee'):
+                            clean_t_list = []
+                            for t in group.to_dict(orient='records'):
+                                clean_t = {
+                                    'date': str(t.get('date', '')),
+                                    'num_ticket': str(t.get('num_ticket', '')),
+                                    'poids_kg': self._get_num(t.get('poids_kg')),
+                                    'degre': self._get_num(t.get('degre')),
+                                    'notes': str(t.get('notes', '') or ''),
+                                    'id': int(self._get_num(t.get('id', 1))),
+                                    'categorie': str(t.get('categorie', 'VDP')),
+                                    'volume_hl': self._get_num(t.get('volume_hl')),
+                                    'hl_degres': self._get_num(t.get('hl_degres')),
+                                    'prix_unitaire_applique': self._get_num(t.get('prix_unitaire_applique')),
+                                    'montant_estime_eur': self._get_num(t.get('montant_estime_eur'))
+                                }
+                                clean_t_list.append(clean_t)
+                            tickets_by_annee[int(annee_val)] = clean_t_list
+                except Exception:
+                    pass
+
             if 'annee' in df.columns:
                 df['annee'] = pd.to_numeric(df['annee'], errors='coerce')
                 df = df.dropna(subset=['annee'])
                 for annee, group in df.groupby('annee'):
                     rows = group.to_dict(orient='records')
-                    tickets_rows = [r for r in rows if r.get('type') == 'TICKET']
-                    params_rows = [r for r in rows if r.get('type') == 'CAMPAGNE']
+                    # Traiter les lignes de la consolidation campagne
+                    p = rows[0]
 
-                    clean_tickets = []
-                    for t in tickets_rows:
-                        clean_t = {
-                            'date': t.get('date'),
-                            'num_ticket': t.get('num_ticket'),
-                            'poids_kg': self._get_num(t.get('poids_kg')),
-                            'degre': self._get_num(t.get('degre')),
-                            'notes': t.get('notes', ''),
-                            'id': self._get_num(t.get('id')),
-                            'categorie': t.get('categorie'),
-                            'volume_hl': self._get_num(t.get('volume_hl')),
-                            'hl_degres': self._get_num(t.get('hl_degres')),
-                            'prix_unitaire_applique': self._get_num(t.get('prix_unitaire_applique')),
-                            'montant_estime_eur': self._get_num(t.get('montant_estime_eur'))
-                        }
-                        clean_tickets.append(clean_t)
+                    # Si des tickets existent dans l'onglet séparé, les associer, sinon filtrer les lignes TICKET legacy
+                    tickets_rows = [r for r in rows if r.get('type') == 'TICKET']
+                    clean_tickets = tickets_by_annee.get(int(annee))
+
+                    if clean_tickets is None:
+                        clean_tickets = []
+                        for t in tickets_rows:
+                            clean_t = {
+                                'date': str(t.get('date', '')),
+                                'num_ticket': str(t.get('num_ticket', '')),
+                                'poids_kg': self._get_num(t.get('poids_kg')),
+                                'degre': self._get_num(t.get('degre')),
+                                'notes': str(t.get('notes', '') or ''),
+                                'id': int(self._get_num(t.get('id', 1))),
+                                'categorie': str(t.get('categorie', 'VDP')),
+                                'volume_hl': self._get_num(t.get('volume_hl')),
+                                'hl_degres': self._get_num(t.get('hl_degres')),
+                                'prix_unitaire_applique': self._get_num(t.get('prix_unitaire_applique')),
+                                'montant_estime_eur': self._get_num(t.get('montant_estime_eur'))
+                            }
+                            clean_tickets.append(clean_t)
 
                     campagne = {'annee': int(annee), 'tickets': clean_tickets}
-                    if params_rows:
-                        p = params_rows[0]
-                        campagne['status'] = p.get('status', 'en_cours')
-                        campagne['parametres'] = {
-                            'rendement_theorique': self._get_num(p.get('rdt_theo'), 73.0),
-                            'prix_u': self._get_num(p.get('prix_u'), 100.0),
-                            'prime_u': self._get_num(p.get('prime_u'), 0.0),
-                            'frais_vinif_u': self._get_num(p.get('frais_vinif_u'), 15.73),
-                            'prix_hl_deg_vdp': self._get_num(p.get('prix_hl_deg_vdp'), 6.28),
-                            'prix_hl_deg_vdt': self._get_num(p.get('prix_hl_deg_vdt'), 5.2713),
-                            'ratio_kg_hl': self._get_num(p.get('ratio_kg_hl'), 130.0)
-                        }
-                        campagne['surface_vendangee'] = {
-                            'total_ha': self._get_num(p.get('total_ha'), 2.05),
-                            'notes': p.get('notes_surface', '')
-                        }
-                        campagne['validation'] = {
-                            'validee': self._to_bool(p.get('validee')),
-                            'hl_reel': self._get_num(p.get('hl_reel')),
-                            'prix_u_reel': self._get_num(p.get('prix_u_reel')),
-                            'prime_reelle': self._get_num(p.get('prime_reelle')),
-                            'frais_reels': self._get_num(p.get('frais_reels')),
-                            'date_validation': p.get('date_validation')
-                        }
-                        if campagne['validation']['validee']:
-                             campagne['donnees_historiques'] = {
-                                'poids_kg': self._get_num(p.get('poids_kg_hist')),
-                                'hl': self._get_num(p.get('hl_hist')),
-                                'degre_moyen': self._get_num(p.get('degre_moyen_hist')),
-                                'ca_brut': self._get_num(p.get('ca_brut_hist')),
-                                'ca_net': self._get_num(p.get('ca_net_hist')),
-                                'total_ha': self._get_num(p.get('total_ha_hist')),
-                                'euro_hl': self._get_num(p.get('euro_hl_hist')),
-                                'poids_ha': self._get_num(p.get('poids_ha_hist')),
-                                'rendement_reel': self._get_num(p.get('rendement_reel_hist')),
-                                'prime_totale': self._get_num(p.get('prime_reelle')),
-                                'frais_totaux': self._get_num(p.get('frais_reels'))
-                             }
+                    campagne['status'] = p.get('status', 'en_cours')
+                    campagne['parametres'] = {
+                        'rendement_theorique': self._get_num(p.get('rdt_theo'), 73.0),
+                        'prix_u': self._get_num(p.get('prix_u'), 100.0),
+                        'prime_u': self._get_num(p.get('prime_u'), 0.0847),
+                        'frais_vinif_u': self._get_num(p.get('frais_vinif_u'), 0.1573),
+                        'prix_hl_deg_vdp': self._get_num(p.get('prix_hl_deg_vdp'), 6.2837),
+                        'prix_hl_deg_vdt': self._get_num(p.get('prix_hl_deg_vdt'), 5.2713)
+                    }
+                    campagne['surface_vendangee'] = {
+                        'total_ha': self._get_num(p.get('total_ha'), 2.05),
+                        'notes': p.get('notes_surface', '')
+                    }
+                    campagne['validation'] = {
+                        'validee': self._to_bool(p.get('validee')),
+                        'hl_reel': self._get_num(p.get('hl_reel')),
+                        'prix_u_reel': self._get_num(p.get('prix_u_reel')),
+                        'prime_reelle': self._get_num(p.get('prime_reelle')),
+                        'frais_reels': self._get_num(p.get('frais_reels')),
+                        'date_validation': p.get('date_validation')
+                    }
+                    if campagne['validation']['validee']:
+                         campagne['donnees_historiques'] = {
+                            'poids_kg': self._get_num(p.get('poids_kg_hist')),
+                            'hl': self._get_num(p.get('hl_hist')),
+                            'degre_moyen': self._get_num(p.get('degre_moyen_hist')),
+                            'ca_brut': self._get_num(p.get('ca_brut_hist')),
+                            'ca_net': self._get_num(p.get('ca_net_hist')),
+                            'total_ha': self._get_num(p.get('total_ha_hist')),
+                            'euro_hl': self._get_num(p.get('euro_hl_hist')),
+                            'poids_ha': self._get_num(p.get('poids_ha_hist')),
+                            'rendement_reel': self._get_num(p.get('rendement_reel_hist')),
+                            'prime_totale': self._get_num(p.get('prime_reelle')),
+                            'frais_totaux': self._get_num(p.get('frais_reels'))
+                         }
                     campagnes.append(campagne)
             return {'campagnes': campagnes}
 
@@ -336,6 +381,16 @@ class DataManager:
                     rows.append(row)
             return pd.DataFrame(rows)
 
+        elif key == 'tickets':
+            rows = []
+            for campagne in data.get('campagnes', []):
+                annee = campagne['annee']
+                for ticket in campagne.get('tickets', []):
+                    t_row = {'annee': annee}
+                    t_row.update(ticket)
+                    rows.append(t_row)
+            return pd.DataFrame(rows)
+
         elif key == 'vendanges':
             rows = []
             for campagne in data.get('campagnes', []):
@@ -346,18 +401,17 @@ class DataManager:
                 h = campagne.get('donnees_historiques', {})
 
                 camp_row = {
-                    'annee': annee, 'type': 'CAMPAGNE',
+                    'annee': annee,
                     'status': campagne.get('status'),
-                    'rdt_theo': p.get('rendement_theorique'),
-                    'prix_u': p.get('prix_u'),
-                    'prime_u': p.get('prime_u'),
-                    'frais_vinif_u': p.get('frais_vinif_u'),
-                    'prix_hl_deg_vdp': p.get('prix_hl_deg_vdp', 6.28),
+                    'rdt_theo': p.get('rendement_theorique', 73.0),
+                    'prix_u': p.get('prix_u', 100.0),
+                    'prime_u': p.get('prime_u', 0.0847),
+                    'frais_vinif_u': p.get('frais_vinif_u', 0.1573),
+                    'prix_hl_deg_vdp': p.get('prix_hl_deg_vdp', 6.2837),
                     'prix_hl_deg_vdt': p.get('prix_hl_deg_vdt', 5.2713),
-                    'ratio_kg_hl': p.get('ratio_kg_hl', 130.0),
-                    'total_ha': s.get('total_ha'),
-                    'notes_surface': s.get('notes'),
-                    'validee': v.get('validee'),
+                    'total_ha': s.get('total_ha', 2.05),
+                    'notes_surface': s.get('notes', ''),
+                    'validee': v.get('validee', False),
                     'hl_reel': v.get('hl_reel'),
                     'prix_u_reel': v.get('prix_u_reel'),
                     'prime_reelle': v.get('prime_reelle'),
@@ -374,11 +428,6 @@ class DataManager:
                     'rendement_reel_hist': h.get('rendement_reel')
                 }
                 rows.append(camp_row)
-
-                for ticket in campagne.get('tickets', []):
-                    t_row = {'annee': annee, 'type': 'TICKET'}
-                    t_row.update(ticket)
-                    rows.append(t_row)
             return pd.DataFrame(rows)
 
         elif key == 'config_vignoble':
