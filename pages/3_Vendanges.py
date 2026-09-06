@@ -92,7 +92,10 @@ class GestionVendanges:
                 'rendement_theorique': 73.0,
                 'prix_u': 100.0000,
                 'frais_vinif_u': 15.7300,
-                'prime_u': 0.0000
+                'prime_u': 0.0000,
+                'prix_hl_deg_vdp': 6.28,
+                'prix_hl_deg_vdt': 5.2713,
+                'ratio_kg_hl': 130.0
             },
             'surface_vendangee': {
                 'total_ha': 2.05,
@@ -112,6 +115,26 @@ class GestionVendanges:
         self.sauvegarder()
         return campagne
 
+    def calculer_metriques_ticket(self, poids_kg, degre, params):
+        """Calcule la catégorie, le volume hL, les hL.° et le montant estimé d'un ticket"""
+        prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
+        prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
+        ratio = params.get('ratio_kg_hl', 130.0)
+
+        categorie = "VDP" if degre >= 10.5 else "VDT"
+        volume_hl = round(poids_kg / ratio, 2) if ratio > 0 else 0.0
+        hl_degres = volume_hl * degre
+        prix_unitaire = prix_vdp if categorie == "VDP" else prix_vdt
+        montant_estime = hl_degres * prix_unitaire
+
+        return {
+            'categorie': categorie,
+            'volume_hl': volume_hl,
+            'hl_degres': hl_degres,
+            'prix_unitaire_applique': prix_unitaire,
+            'montant_estime_eur': montant_estime
+        }
+
     def ajouter_ticket(self, date_ticket, ticket):
         """Ajoute un ticket de vendange (crée la campagne si nécessaire)"""
         # Extraire l'année de la date du ticket
@@ -124,6 +147,10 @@ class GestionVendanges:
         # Vérifier si la campagne est validée
         if campagne['validation']['validee']:
             return False, f"❌ La campagne {annee} est validée. Impossible d'ajouter des tickets."
+
+        params = campagne.get('parametres', {})
+        metriques = self.calculer_metriques_ticket(ticket['poids_kg'], ticket['degre'], params)
+        ticket.update(metriques)
 
         ticket['id'] = len(campagne['tickets']) + 1
         campagne['tickets'].append(ticket)
@@ -144,44 +171,78 @@ class GestionVendanges:
             return None
 
         tickets = campagne['tickets']
+        params = campagne.get('parametres', {})
+        prix_vdp = params.get('prix_hl_deg_vdp', 6.28)
+        prix_vdt = params.get('prix_hl_deg_vdt', 5.2713)
+        ratio = params.get('ratio_kg_hl', 130.0)
+
+        # Mettre à jour / recalculer métriques par ticket
+        for t in tickets:
+            metriques = self.calculer_metriques_ticket(t['poids_kg'], t['degre'], params)
+            t.update(metriques)
+
         poids_total = sum(t['poids_kg'] for t in tickets)
+        poids_vdp = sum(t['poids_kg'] for t in tickets if t['categorie'] == 'VDP')
+        poids_vdt = sum(t['poids_kg'] for t in tickets if t['categorie'] == 'VDT')
 
-        # Degré moyen pondéré
-        if poids_total > 0:
-            degre_moyen = sum(t['poids_kg'] * t['degre'] for t in tickets) / poids_total
-        else:
-            degre_moyen = 0
+        pct_poids_vdp = (poids_vdp / poids_total * 100) if poids_total > 0 else 0.0
+        pct_poids_vdt = (poids_vdt / poids_total * 100) if poids_total > 0 else 0.0
 
-        # Calculs
-        rdt = campagne['parametres']['rendement_theorique'] / 100
+        degre_moyen = (sum(t['poids_kg'] * t['degre'] for t in tickets) / poids_total) if poids_total > 0 else 0.0
+
+        volume_vdp_hl = sum(t['volume_hl'] for t in tickets if t['categorie'] == 'VDP')
+        volume_vdt_hl = sum(t['volume_hl'] for t in tickets if t['categorie'] == 'VDT')
+        volume_total_hl = sum(t['volume_hl'] for t in tickets)
+
+        pct_volume_vdp = (volume_vdp_hl / volume_total_hl * 100) if volume_total_hl > 0 else 0.0
+        pct_volume_vdt = (volume_vdt_hl / volume_total_hl * 100) if volume_total_hl > 0 else 0.0
+
+        hl_degres_vdp = sum(t['hl_degres'] for t in tickets if t['categorie'] == 'VDP')
+        hl_degres_vdt = sum(t['hl_degres'] for t in tickets if t['categorie'] == 'VDT')
+        hl_degres_total = sum(t['hl_degres'] for t in tickets)
+
+        ca_vdp_estime = sum(t['montant_estime_eur'] for t in tickets if t['categorie'] == 'VDP')
+        ca_vdt_estime = sum(t['montant_estime_eur'] for t in tickets if t['categorie'] == 'VDT')
+        ca_total_estime = sum(t['montant_estime_eur'] for t in tickets)
+
+        prix_moyen_pondere_hl_deg = (ca_total_estime / hl_degres_total) if hl_degres_total > 0 else 0.0
+
+        rdt = params.get('rendement_theorique', 73.0) / 100
         hl_estime = (poids_total * degre_moyen * rdt) / 100
-
-        # Production en litres = rendement % × poids kg
         production_litres = poids_total * rdt
 
-        prix_u = campagne['parametres']['prix_u']
-        prime_u = campagne['parametres'].get('prime_u', 0)
-        frais_u = campagne['parametres']['frais_vinif_u']
+        prix_u = params.get('prix_u', 100.0)
+        prime_u = params.get('prime_u', 0.0)
+        frais_u = params.get('frais_vinif_u', 15.73)
 
-        # Prime € = Prime U (€/kg) × Poids total (kg)
         prime_total = prime_u * poids_total
-
-        # CA brut = (Prix U × Hl°) + Prime totale
         ca_brut = (hl_estime * prix_u) + prime_total
-
-        # Frais € = Frais U (€/kg) × Poids total (kg)
         frais_total = frais_u * poids_total
-
         revenu_net = ca_brut - frais_total
 
-        # €/L et €/Hl
-        euro_par_litre = revenu_net / production_litres if production_litres > 0 else 0
+        euro_par_litre = revenu_net / production_litres if production_litres > 0 else 0.0
         euro_par_hl = euro_par_litre * 100
 
         return {
             'nb_tickets': len(tickets),
             'poids_total': poids_total,
+            'poids_vdp': poids_vdp,
+            'poids_vdt': poids_vdt,
+            'pct_poids_vdp': pct_poids_vdp,
+            'pct_poids_vdt': pct_poids_vdt,
             'degre_moyen': degre_moyen,
+            'volume_total_hl': volume_total_hl,
+            'volume_vdp_hl': volume_vdp_hl,
+            'volume_vdt_hl': volume_vdt_hl,
+            'pct_volume_vdp': pct_volume_vdp,
+            'pct_volume_vdt': pct_volume_vdt,
+            'hl_degres_vdp': hl_degres_vdp,
+            'hl_degres_vdt': hl_degres_vdt,
+            'hl_degres_total': hl_degres_total,
+            'ca_vdp_estime': ca_vdp_estime,
+            'ca_vdt_estime': ca_vdt_estime,
+            'ca_total_estime': ca_total_estime,
+            'prix_moyen_pondere_hl_deg': prix_moyen_pondere_hl_deg,
             'hl_estime': hl_estime,
             'production_litres': production_litres,
             'ca_brut': ca_brut,
@@ -356,6 +417,50 @@ st.session_state.active_tab_vendanges = selected_tab
 
 st.markdown("---")
 
+def afficher_synthese_campagne(totaux):
+    """Affiche le panneau / widget de synthèse de la campagne"""
+    if not totaux:
+        st.info("Aucune donnée disponible pour cette campagne.")
+        return
+
+    st.markdown("### 📊 Synthèse Globale de Récolte")
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    with kpi1:
+        st.metric("⚖️ Poids Total", f"{totaux['poids_total']:,.0f} kg", f"{totaux['nb_tickets']} tickets")
+    with kpi2:
+        st.metric("🌡️ Degré Moyen Pondéré", f"{totaux['degre_moyen']:.2f}°")
+    with kpi3:
+        st.metric("💰 CA Total Estimé", f"{totaux['ca_total_estime']:,.2f} €")
+    with kpi4:
+        st.metric("🏷️ Prix Moyen / hL.°", f"{totaux['prix_moyen_pondere_hl_deg']:.4f} €")
+
+    st.markdown("---")
+
+    col_vdp, col_vdt, col_cumul = st.columns(3)
+
+    with col_vdp:
+        st.markdown("#### 🟢 Catégorie VDP (>= 10.5°)")
+        st.write(f"**Tonnage :** {totaux['poids_vdp']:,.0f} kg ({totaux['pct_poids_vdp']:.1f}%)")
+        st.write(f"**Volume :** {totaux['volume_vdp_hl']:.2f} hL ({totaux['pct_volume_vdp']:.1f}%)")
+        st.write(f"**Cumul hL.° :** {totaux['hl_degres_vdp']:.2f}")
+        st.write(f"**Montant Estimé :** {totaux['ca_vdp_estime']:,.2f} €")
+
+    with col_vdt:
+        st.markdown("#### 🟠 Catégorie VDT (< 10.5°)")
+        st.write(f"**Tonnage :** {totaux['poids_vdt']:,.0f} kg ({totaux['pct_poids_vdt']:.1f}%)")
+        st.write(f"**Volume :** {totaux['volume_vdt_hl']:.2f} hL ({totaux['pct_volume_vdt']:.1f}%)")
+        st.write(f"**Cumul hL.° :** {totaux['hl_degres_vdt']:.2f}")
+        st.write(f"**Montant Estimé :** {totaux['ca_vdt_estime']:,.2f} €")
+
+    with col_cumul:
+        st.markdown("#### 🍷 Total Cumulé & Performance")
+        st.write(f"**Volume Total :** {totaux['volume_total_hl']:.2f} hL")
+        st.write(f"**Cumul Total hL.° :** {totaux['hl_degres_total']:.2f}")
+        st.write(f"**CA Total Estimé :** {totaux['ca_total_estime']:,.2f} €")
+        st.write(f"**Prix Moyen Récolte :** {totaux['prix_moyen_pondere_hl_deg']:.4f} € / hL.°")
+
+
 # ========================================
 # TAB 1 : SAISIE TICKETS
 # ========================================
@@ -366,35 +471,41 @@ if selected_tab == tab_titles[0]:
 
     col_form, col_preview = st.columns([2, 1])
 
+    params_active = campagne_active.get('parametres', {})
+    prix_vdp_act = params_active.get('prix_hl_deg_vdp', 6.28)
+    prix_vdt_act = params_active.get('prix_hl_deg_vdt', 5.2713)
+    ratio_act = params_active.get('ratio_kg_hl', 130.0)
+
     with col_form:
-        with st.form("form_ticket", clear_on_submit=True):
-            st.markdown("**Nouveau Ticket de Vendange**")
+        st.markdown("**Nouveau Ticket de Vendange**")
 
-            col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-            with col1:
-                date_vendange = st.date_input(
-                    "📅 Date",
-                    value=date.today(),
-                    format="DD/MM/YYYY"
-                )
+        with col1:
+            date_vendange = st.date_input(
+                "📅 Date",
+                value=date.today(),
+                format="DD/MM/YYYY"
+            )
 
-                poids = st.number_input(
-                    "⚖️ Poids (kg)",
-                    min_value=0,
-                    max_value=50000,
-                    value=2000,
-                    step=100,
-                    help="Poids de la benne en kg"
-                )
+            poids = st.number_input(
+                "⚖️ Poids (kg)",
+                min_value=0,
+                max_value=50000,
+                value=2000,
+                step=100,
+                help="Poids de la benne en kg"
+            )
 
-            with col2:
-                num_ticket = st.text_input(
-                    "🎫 N° Ticket/Benne",
-                    placeholder="Ex: B001, T123...",
-                    help="Optionnel : numéro de la benne ou du ticket"
-                )
+        with col2:
+            num_ticket = st.text_input(
+                "🎫 N° Ticket/Benne",
+                placeholder="Ex: B001, T123...",
+                help="Optionnel : numéro de la benne ou du ticket"
+            )
 
+            col_deg_val, col_deg_badge = st.columns([2, 1])
+            with col_deg_val:
                 degre = st.number_input(
                     "🌡️ Degré (%)",
                     min_value=0.0,
@@ -402,38 +513,59 @@ if selected_tab == tab_titles[0]:
                     value=12.0,
                     step=0.1,
                     format="%.1f",
-                    help="Degré mesuré"
+                    help="Degré mesuré (>= 10.5° = VDP, < 10.5° = VDT)"
                 )
-
-            notes = st.text_area(
-                "📝 Notes (optionnel)",
-                placeholder="Qualité, tri, observations...",
-                height=80
-            )
-
-            submitted = st.form_submit_button("✅ Enregistrer le Ticket", type="primary", use_container_width=True)
-
-            if submitted:
-                if poids > 0 and degre > 0:
-                    annee_ticket = date_vendange.year
-
-                    ticket = {
-                        'date': date_vendange.strftime('%Y-%m-%d'),
-                        'num_ticket': num_ticket if num_ticket else f"T{date_vendange.strftime('%Y%m%d')}",
-                        'poids_kg': poids,
-                        'degre': degre,
-                        'notes': notes
-                    }
-
-                    success, message = vendanges.ajouter_ticket(date_vendange.strftime('%Y-%m-%d'), ticket)
-
-                    if success:
-                        st.success(f"{message} : {poids} kg à {degre}°")
-                        st.rerun()
-                    else:
-                        st.error(message)
+            with col_deg_badge:
+                st.write("")
+                st.write("")
+                if degre >= 10.5:
+                    st.success("🏷️ **VDP**")
                 else:
-                    st.error("⚠️ Poids et degré doivent être > 0")
+                    st.warning("🏷️ **VDT**")
+
+        notes = st.text_area(
+            "📝 Notes (optionnel)",
+            placeholder="Qualité, tri, observations...",
+            height=80
+        )
+
+        # Aperçu calculé en temps réel sur le formulaire
+        cat_preview = "VDP" if degre >= 10.5 else "VDT"
+        vol_preview = round(poids / ratio_act, 2) if ratio_act > 0 else 0.0
+        hldeg_preview = vol_preview * degre
+        pu_preview = prix_vdp_act if cat_preview == "VDP" else prix_vdt_act
+        montant_preview = hldeg_preview * pu_preview
+
+        st.markdown("##### 🔍 Aperçu Calculé du Ticket")
+        pcol1, pcol2, pcol3, pcol4 = st.columns(4)
+        with pcol1:
+            st.metric("Catégorie", cat_preview)
+        with pcol2:
+            st.metric("Volume Estimé", f"{vol_preview:.2f} hL")
+        with pcol3:
+            st.metric("hL.° Générés", f"{hldeg_preview:.2f}")
+        with pcol4:
+            st.metric("Montant Estimé", f"{montant_preview:,.2f} €")
+
+        if st.button("✅ Enregistrer le Ticket", type="primary", use_container_width=True):
+            if poids > 0 and degre > 0:
+                ticket = {
+                    'date': date_vendange.strftime('%Y-%m-%d'),
+                    'num_ticket': num_ticket if num_ticket else f"T{date_vendange.strftime('%Y%m%d')}",
+                    'poids_kg': poids,
+                    'degre': degre,
+                    'notes': notes
+                }
+
+                success, message = vendanges.ajouter_ticket(date_vendange.strftime('%Y-%m-%d'), ticket)
+
+                if success:
+                    st.success(f"{message} : {poids} kg à {degre}° ({cat_preview})")
+                    st.rerun()
+                else:
+                    st.error(message)
+            else:
+                st.error("⚠️ Poids et degré doivent être > 0")
 
     with col_preview:
         st.markdown("**📊 Campagne Active**")
@@ -444,10 +576,16 @@ if selected_tab == tab_titles[0]:
         if totaux:
             st.metric("Tickets", totaux['nb_tickets'])
             st.metric("Poids Total", f"{totaux['poids_total'] or 0:,.0f} kg")
-            st.metric("Degré Moyen", f"{totaux['degre_moyen'] or 0:.1f}°")
-            st.metric("Hl° Estimé", f"{totaux['hl_estime'] or 0:.1f}")
+            st.metric("Degré Moyen Pondéré", f"{totaux['degre_moyen'] or 0:.2f}°")
+            st.metric("Total hL.°", f"{totaux['hl_degres_total'] or 0:.2f}")
+            st.metric("CA Total Estimé", f"{totaux['ca_total_estime'] or 0:,.2f} €")
         else:
             st.info("Aucun ticket saisi")
+
+    # Synthèse globale de la campagne active
+    if totaux:
+        st.markdown("---")
+        afficher_synthese_campagne(totaux)
 
     # Liste des tickets de la campagne active
     st.markdown("---")
@@ -457,12 +595,29 @@ if selected_tab == tab_titles[0]:
         df_tickets = pd.DataFrame(campagne_active['tickets'])
         df_tickets['date'] = pd.to_datetime(df_tickets['date']).dt.strftime('%d/%m/%Y')
 
-        cols = ['date', 'num_ticket', 'poids_kg', 'degre', 'notes', 'id']
-        df_display = df_tickets[[c for c in cols if c in df_tickets.columns]]
-        df_display.columns = ['Date', 'N° Ticket', 'Poids (kg)', 'Degré (°)', 'Notes', 'ID']
+        df_tickets['Catégorie'] = df_tickets['categorie'].apply(
+            lambda cat: "🟢 VDP" if cat == "VDP" else "🟠 VDT"
+        )
+        df_tickets['Volume (hL)'] = df_tickets['volume_hl'].apply(lambda x: f"{x:.2f}")
+        df_tickets['hL.°'] = df_tickets['hl_degres'].apply(lambda x: f"{x:.2f}")
+        df_tickets['Montant (€)'] = df_tickets['montant_estime_eur'].apply(lambda x: f"{x:,.2f} €")
+
+        cols_map = {
+            'date': 'Date',
+            'num_ticket': 'N° Ticket',
+            'poids_kg': 'Poids (kg)',
+            'degre': 'Degré (°)',
+            'Catégorie': 'Catégorie',
+            'Volume (hL)': 'Volume (hL)',
+            'hL.°': 'hL.°',
+            'Montant (€)': 'Montant (€)',
+            'notes': 'Notes'
+        }
+
+        df_show = df_tickets[[c for c in cols_map.keys() if c in df_tickets.columns]].rename(columns=cols_map)
 
         st.dataframe(
-            df_display.drop(columns=['ID']),
+            df_show,
             use_container_width=True,
             hide_index=True
         )
@@ -527,24 +682,9 @@ elif selected_tab == tab_titles[1]:
 
             st.markdown("---")
 
-            # Indicateurs principaux
+            # Totaux et Synthèse Globale
             totaux = vendanges.calculer_totaux(annee_selectionnee)
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-                st.metric("🏋️ Poids Total", f"{totaux['poids_total'] or 0:,.0f} kg")
-
-            with col2:
-                st.metric("🌡️ Degré Moyen", f"{totaux['degre_moyen'] or 0:.2f}°")
-
-            with col3:
-                st.metric("🍷 Hl° Estimé", f"{totaux['hl_estime'] or 0:.1f}")
-
-            with col4:
-                surf_campagne = campagne.get('surface_vendangee', {}).get('total_ha', surface_totale)
-                poids_ha = totaux['poids_total'] / surf_campagne if surf_campagne > 0 else 0
-                st.metric("📏 Poids/Ha", f"{poids_ha or 0:,.0f} kg/ha")
+            afficher_synthese_campagne(totaux)
 
             st.markdown("---")
 
@@ -554,7 +694,37 @@ elif selected_tab == tab_titles[1]:
             col_param1, col_param2 = st.columns(2)
 
             with col_param1:
-                st.markdown("**Paramètres**")
+                st.markdown("**Paramètres de Valorisation hL.° & Vinification**")
+
+                prix_vdp_val = st.number_input(
+                    "Prix hL.° VDP (€)",
+                    min_value=0.0,
+                    value=campagne['parametres'].get('prix_hl_deg_vdp', 6.28),
+                    step=0.0001,
+                    format="%.4f",
+                    key=f"prix_vdp_{annee_selectionnee}",
+                    disabled=campagne['validation']['validee']
+                )
+
+                prix_vdt_val = st.number_input(
+                    "Prix hL.° VDT (€)",
+                    min_value=0.0,
+                    value=campagne['parametres'].get('prix_hl_deg_vdt', 5.2713),
+                    step=0.0001,
+                    format="%.4f",
+                    key=f"prix_vdt_{annee_selectionnee}",
+                    disabled=campagne['validation']['validee']
+                )
+
+                ratio_val = st.number_input(
+                    "Ratio Poids/Volume (kg / hL)",
+                    min_value=1.0,
+                    value=campagne['parametres'].get('ratio_kg_hl', 130.0),
+                    step=0.1,
+                    format="%.1f",
+                    key=f"ratio_kg_{annee_selectionnee}",
+                    disabled=campagne['validation']['validee']
+                )
 
                 rdt_theo = st.number_input(
                     "Rendement théorique (%)",
@@ -568,7 +738,7 @@ elif selected_tab == tab_titles[1]:
                 )
 
                 prix_u = st.number_input(
-                    "Prix U (€/Hl°)",
+                    "Prix U Coopérative (€/Hl°)",
                     min_value=0.0,
                     value=campagne['parametres']['prix_u'],
                     step=0.0001,
@@ -600,7 +770,10 @@ elif selected_tab == tab_titles[1]:
                 )
 
                 if not campagne['validation']['validee']:
-                    if st.button("💾 Sauvegarder Paramètres"):
+                    if st.button("💾 Sauvegarder Paramètres", key=f"save_params_{annee_selectionnee}"):
+                        campagne['parametres']['prix_hl_deg_vdp'] = prix_vdp_val
+                        campagne['parametres']['prix_hl_deg_vdt'] = prix_vdt_val
+                        campagne['parametres']['ratio_kg_hl'] = ratio_val
                         campagne['parametres']['rendement_theorique'] = rdt_theo
                         campagne['parametres']['prix_u'] = prix_u
                         campagne['parametres']['prime_u'] = prime_u

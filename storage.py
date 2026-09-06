@@ -224,7 +224,12 @@ class DataManager:
                             'poids_kg': self._get_num(t.get('poids_kg')),
                             'degre': self._get_num(t.get('degre')),
                             'notes': t.get('notes', ''),
-                            'id': self._get_num(t.get('id'))
+                            'id': self._get_num(t.get('id')),
+                            'categorie': t.get('categorie'),
+                            'volume_hl': self._get_num(t.get('volume_hl')),
+                            'hl_degres': self._get_num(t.get('hl_degres')),
+                            'prix_unitaire_applique': self._get_num(t.get('prix_unitaire_applique')),
+                            'montant_estime_eur': self._get_num(t.get('montant_estime_eur'))
                         }
                         clean_tickets.append(clean_t)
 
@@ -236,7 +241,10 @@ class DataManager:
                             'rendement_theorique': self._get_num(p.get('rdt_theo'), 73.0),
                             'prix_u': self._get_num(p.get('prix_u'), 100.0),
                             'prime_u': self._get_num(p.get('prime_u'), 0.0),
-                            'frais_vinif_u': self._get_num(p.get('frais_vinif_u'), 15.73)
+                            'frais_vinif_u': self._get_num(p.get('frais_vinif_u'), 15.73),
+                            'prix_hl_deg_vdp': self._get_num(p.get('prix_hl_deg_vdp'), 6.28),
+                            'prix_hl_deg_vdt': self._get_num(p.get('prix_hl_deg_vdt'), 5.2713),
+                            'ratio_kg_hl': self._get_num(p.get('ratio_kg_hl'), 130.0)
                         }
                         campagne['surface_vendangee'] = {
                             'total_ha': self._get_num(p.get('total_ha'), 2.05),
@@ -341,6 +349,9 @@ class DataManager:
                     'prix_u': p.get('prix_u'),
                     'prime_u': p.get('prime_u'),
                     'frais_vinif_u': p.get('frais_vinif_u'),
+                    'prix_hl_deg_vdp': p.get('prix_hl_deg_vdp', 6.28),
+                    'prix_hl_deg_vdt': p.get('prix_hl_deg_vdt', 5.2713),
+                    'ratio_kg_hl': p.get('ratio_kg_hl', 130.0),
                     'total_ha': s.get('total_ha'),
                     'notes_surface': s.get('notes'),
                     'validee': v.get('validee'),
