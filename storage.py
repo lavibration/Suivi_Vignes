@@ -262,12 +262,15 @@ class DataManager:
                              campagne['donnees_historiques'] = {
                                 'poids_kg': self._get_num(p.get('poids_kg_hist')),
                                 'hl': self._get_num(p.get('hl_hist')),
+                                'degre_moyen': self._get_num(p.get('degre_moyen_hist')),
                                 'ca_brut': self._get_num(p.get('ca_brut_hist')),
                                 'ca_net': self._get_num(p.get('ca_net_hist')),
                                 'total_ha': self._get_num(p.get('total_ha_hist')),
                                 'euro_hl': self._get_num(p.get('euro_hl_hist')),
                                 'poids_ha': self._get_num(p.get('poids_ha_hist')),
-                                'rendement_reel': self._get_num(p.get('rendement_reel_hist'))
+                                'rendement_reel': self._get_num(p.get('rendement_reel_hist')),
+                                'prime_totale': self._get_num(p.get('prime_reelle')),
+                                'frais_totaux': self._get_num(p.get('frais_reels'))
                              }
                     campagnes.append(campagne)
             return {'campagnes': campagnes}
@@ -362,6 +365,7 @@ class DataManager:
                     'date_validation': v.get('date_validation'),
                     'poids_kg_hist': h.get('poids_kg'),
                     'hl_hist': h.get('hl'),
+                    'degre_moyen_hist': h.get('degre_moyen'),
                     'ca_brut_hist': h.get('ca_brut'),
                     'ca_net_hist': h.get('ca_net'),
                     'total_ha_hist': h.get('total_ha'),
