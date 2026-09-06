@@ -331,41 +331,74 @@ class GestionVendanges:
         self.sauvegarder()
 
     def importer_historique(self, df):
-        """Importe l'historique depuis un DataFrame"""
+        """Importe l'historique depuis un DataFrame avec l'ensemble des métriques d'Excel"""
         for _, row in df.iterrows():
-            annee = int(row['Année'])
+            try:
+                annee = int(row['Année'])
+            except:
+                continue
 
             if self.get_campagne(annee):
                 continue
+
+            poids_kg = self.storage._get_num(row.get('Poids Kg', row.get('poids_kg', 0)))
+            hl_deg = self.storage._get_num(row.get('Hl°', row.get('H°', row.get('hl', 0))))
+            prix_u = self.storage._get_num(row.get('Prix U', row.get('prix_u', 100)))
+            ca_brut = self.storage._get_num(row.get('Revenus €', row.get('Revenus', row.get('ca_brut', 0))))
+            prime_u = self.storage._get_num(row.get('Prime U', row.get('prime_u', 0)))
+            prime_eur = self.storage._get_num(row.get('Prime €', row.get('prime_totale', 0)))
+            frais_u = self.storage._get_num(row.get('Frais U', row.get('frais_u', 15.73)))
+            frais_eur = self.storage._get_num(row.get('Frais (€)', row.get('Frais', row.get('frais_totaux', 0))))
+            degre_moyen = self.storage._get_num(row.get('degré réel', row.get('Degré', row.get('degre_moyen', 0))))
+            rendement_jus = self.storage._get_num(row.get('rendement jus', row.get('rendement_reel', 73)))
+            ca_net = self.storage._get_num(row.get('Chiffre Affaire Net €', row.get('ca_net', 0)))
+            total_ha = self.storage._get_num(row.get('Total Ha', row.get('total_ha', 2.05)))
+            ca_ha = self.storage._get_num(row.get('CA / Ha (€)', row.get('ca_ha', 0)))
+            euro_hl = self.storage._get_num(row.get('€/hl (72% rdt)', row.get('euro_hl', 0)))
+            poids_ha = self.storage._get_num(row.get('Poids/Ha', row.get('poids_ha', 0)))
+
+            if ca_net == 0 and ca_brut > 0:
+                ca_net = ca_brut - frais_eur
+
+            # Si le degré réel n'est pas fourni mais qu'on a hl° et poids
+            if degre_moyen == 0 and hl_deg > 0 and poids_kg > 0:
+                rdt_ratio = (rendement_jus / 100) if rendement_jus > 1 else (rendement_jus if rendement_jus > 0 else 0.73)
+                degre_moyen = (hl_deg * 100) / (poids_kg * rdt_ratio) if rdt_ratio > 0 else 0
 
             campagne = {
                 'annee': annee,
                 'status': 'validee',
                 'tickets': [],
                 'parametres': {
-                    'rendement_theorique': float(row.get('rendement jus', 73)),
-                    'prix_u': float(row.get('Prix U', 100)),
-                    'frais_vinif_u': float(row.get('Frais U', 15.73)),
-                    'prime_u': float(row.get('Prime U', 0))
+                    'rendement_theorique': rendement_jus,
+                    'prix_u': prix_u,
+                    'frais_vinif_u': frais_u,
+                    'prime_u': prime_u,
+                    'prix_hl_deg_vdp': 6.28,
+                    'prix_hl_deg_vdt': 5.2713,
+                    'ratio_kg_hl': 130.0
                 },
                 'validation': {
                     'validee': True,
-                    'hl_reel': float(row.get('Revenus €', 0)) / float(row.get('Prix U', 100)) if 'Revenus €' in row and float(row.get('Prix U', 100)) != 0 else None,
-                    'prix_u_reel': float(row.get('Prix U', 100)),
-                    'frais_reels': None,
-                    'prime_reelle': float(row.get('Prime €', 0)),
+                    'hl_reel': hl_deg,
+                    'prix_u_reel': prix_u,
+                    'frais_reels': frais_eur,
+                    'prime_reelle': prime_eur,
                     'date_validation': f"{annee}-12-31"
                 },
                 'donnees_historiques': {
-                    'poids_kg': self.storage._get_num(row.get('Poids Kg', 0)),
-                    'hl': self.storage._get_num(row.get('H°', 0)) if 'H°' in row else None,
-                    'ca_brut': self.storage._get_num(row.get('Revenus €', row.get('ca_brut_hist', 0))),
-                    'ca_net': self.storage._get_num(row.get('Chiffre Affaire Net €', row.get('ca_net_hist', 0))),
-                    'total_ha': self.storage._get_num(row.get('total_ha_hist', row.get('Total Ha', 0))),
-                    'ca_ha': self.storage._get_num(row.get('CA / Ha (€)', 0)),
-                    'euro_hl': self.storage._get_num(row.get('€/hl (72% rdt)', row.get('euro_hl_hist', 0))),
-                    'poids_ha': self.storage._get_num(row.get('Poids/Ha', 0)),
-                    'rendement_reel': self.storage._get_num(row.get('rendement jus', 73))
+                    'poids_kg': poids_kg,
+                    'hl': hl_deg,
+                    'degre_moyen': degre_moyen,
+                    'ca_brut': ca_brut,
+                    'ca_net': ca_net,
+                    'total_ha': total_ha,
+                    'ca_ha': ca_ha if ca_ha > 0 else (ca_brut / total_ha if total_ha > 0 else 0),
+                    'euro_hl': euro_hl,
+                    'poids_ha': poids_ha if poids_ha > 0 else ((poids_kg / 1000) / total_ha if total_ha > 0 else 0),
+                    'rendement_reel': rendement_jus,
+                    'prime_totale': prime_eur,
+                    'frais_totaux': frais_eur
                 },
                 'parcelles_vendangees': []
             }
@@ -1153,22 +1186,24 @@ elif selected_tab == tab_titles[3]:
             if 'donnees_historiques' in c:
                 hist = c['donnees_historiques']
 
-                # CORRECTION : Si euro_hl semble être 100x trop grand, on corrige
                 euro_hl_value = hist.get('euro_hl', 0)
                 if euro_hl_value > 1000:
                     euro_hl_value = euro_hl_value / 100
 
-                def fmt_num(val, format_str):
-                    try:
-                        if val is None or val != val: return "-"
-                        return format_str % float(val)
-                    except: return "-"
+                degre_m = hist.get('degre_moyen')
+                if (degre_m is None or degre_m == 0) and hist.get('hl', 0) > 0 and hist.get('poids_kg', 0) > 0:
+                    rdt_r = hist.get('rendement_reel', 73)
+                    rdt_ratio = (rdt_r / 100) if rdt_r > 1 else (rdt_r if rdt_r > 0 else 0.73)
+                    degre_m = (hist.get('hl') * 100) / (hist.get('poids_kg') * rdt_ratio) if rdt_ratio > 0 else 0.0
 
                 data_table.append({
                     'Année': c['annee'],
                     'Poids (kg)': f"{hist.get('poids_kg', 0) or 0:,.0f}",
+                    'Degré réel (°)': f"{degre_m:.2f}°" if degre_m else "-",
                     'Hl°': f"{hist.get('hl', 0) or 0:.1f}",
                     'CA Brut (€)': f"{hist.get('ca_brut', 0) or 0:,.0f}",
+                    'Prime (€)': f"{hist.get('prime_totale', 0) or 0:,.2f}",
+                    'Frais (€)': f"{hist.get('frais_totaux', 0) or 0:,.2f}",
                     'CA Net (€)': f"{hist.get('ca_net', 0) or 0:,.0f}",
                     'Total Ha': f"{hist.get('total_ha', 0) or 0:.2f}",
                     'CA/Ha (€)': f"{hist.get('ca_ha', 0) or 0:,.0f}",
@@ -1183,8 +1218,11 @@ elif selected_tab == tab_titles[3]:
                 data_table.append({
                     'Année': c['annee'],
                     'Poids (kg)': f"{nb_tickets} tickets",
+                    'Degré réel (°)': '-',
                     'Hl°': '-',
                     'CA Brut (€)': '-',
+                    'Prime (€)': '-',
+                    'Frais (€)': '-',
                     'CA Net (€)': '-',
                     'Total Ha': '-',
                     'CA/Ha (€)': '-',

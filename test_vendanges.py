@@ -2,6 +2,7 @@ import pytest
 import os
 import json
 import importlib
+import pandas as pd
 from unittest.mock import MagicMock, patch
 
 # Dynamically import pages/3_Vendanges.py
@@ -104,8 +105,8 @@ def test_ajouter_ticket_et_totaux_campagne(temp_vendanges_file):
         expected_deg_moyen = (5050 * 11.2 + 1240 * 10.1) / 6290
         assert abs(totaux['degre_moyen'] - expected_deg_moyen) < 1e-4
 
-        vol_vdp = round(5050 / 130.0, 2)  # 38.85
-        vol_vdt = round(1240 / 130.0, 2)  # 9.54
+        vol_vdp = round(5050 / 130.0, 2)
+        vol_vdt = round(1240 / 130.0, 2)
         assert totaux['volume_vdp_hl'] == vol_vdp
         assert totaux['volume_vdt_hl'] == vol_vdt
         assert totaux['volume_total_hl'] == round(vol_vdp + vol_vdt, 2)
@@ -124,3 +125,42 @@ def test_ajouter_ticket_et_totaux_campagne(temp_vendanges_file):
 
         prix_moyen = (ca_vdp + ca_vdt) / (hl_deg_vdp + hl_deg_vdt)
         assert abs(totaux['prix_moyen_pondere_hl_deg'] - prix_moyen) < 1e-4
+
+
+def test_importer_historique_complet(temp_vendanges_file):
+    with patch('storage.DataManager.load_data') as mock_load, \
+         patch('storage.DataManager.save_data') as mock_save:
+
+        mock_load.return_value = {"campagnes": []}
+
+        gv = GestionVendanges(fichier='test_vendanges')
+
+        df_excel = pd.DataFrame([{
+            'Année': 2024,
+            'Poids Kg': 31270,
+            'Prix U': 6.03,
+            'Hl°': 2540.0,
+            'Revenus €': 15316.2,
+            'Prime U': 0.0847,
+            'Prime €': 2648.6,
+            'Frais U': 0.1573,
+            'Frais (€)': 4918.8,
+            'degré réel': 11.13,
+            'rendement jus': 73.0,
+            'Chiffre Affaire Net €': 13046.0,
+            'Total Ha': 2.05,
+            'CA / Ha (€)': 6363.9,
+            '€/hl (72% rdt)': 0.57,
+            'Poids/Ha': 15.25
+        }])
+
+        gv.importer_historique(df_excel)
+
+        campagne_imported = gv.get_campagne(2024)
+        assert campagne_imported is not None
+        hist = campagne_imported['donnees_historiques']
+        assert hist['poids_kg'] == 31270
+        assert hist['degre_moyen'] == 11.13
+        assert hist['prime_totale'] == 2648.6
+        assert hist['frais_totaux'] == 4918.8
+        assert hist['ca_net'] == 13046.0
