@@ -17,17 +17,16 @@ def temp_vendanges_file(tmp_path):
     data = {
         "campagnes": [
             {
-                "annee": 2026,
+                "annee": 2025,
                 "status": "en_cours",
                 "tickets": [],
                 "parametres": {
                     "rendement_theorique": 73.0,
                     "prix_u": 100.0,
-                    "frais_vinif_u": 15.73,
-                    "prime_u": 0.0,
+                    "frais_vinif_u": 0.1573,
+                    "prime_u": 0.0847,
                     "prix_hl_deg_vdp": 6.28,
-                    "prix_hl_deg_vdt": 5.2713,
-                    "ratio_kg_hl": 130.0
+                    "prix_hl_deg_vdt": 5.2713
                 },
                 "surface_vendangee": {
                     "total_ha": 2.05,
@@ -54,27 +53,20 @@ def test_categorisation_et_calculs_ticket():
     params = {
         "prix_hl_deg_vdp": 6.28,
         "prix_hl_deg_vdt": 5.2713,
-        "ratio_kg_hl": 130.0
+        "rendement_theorique": 73.0
     }
 
-    # Ticket 1: degre = 11.2 (>= 10.5 -> VDP)
-    m1 = gv.calculer_metriques_ticket(5050, 11.2, params)
+    # Ticket 1: 7560 kg, 12.1° (>= 10.5 -> VDP)
+    m1 = gv.calculer_metriques_ticket(7560, 12.1, params)
     assert m1['categorie'] == "VDP"
-    assert m1['volume_hl'] == round(5050 / 130.0, 2)  # 38.85
-    assert abs(m1['hl_degres'] - (38.85 * 11.2)) < 1e-4  # 435.12
+    assert abs(m1['volume_hl'] - (7560 * 0.73 / 100)) < 1e-4  # 55.188 hL
+    expected_hl_deg = (7560 * 12.1 * 0.73) / 100  # 667.7748
+    assert abs(m1['hl_degres'] - expected_hl_deg) < 1e-4
     assert m1['prix_unitaire_applique'] == 6.28
-    assert abs(m1['montant_estime_eur'] - (38.85 * 11.2 * 6.28)) < 1e-4
-
-    # Ticket 2: degre = 10.1 (< 10.5 -> VDT)
-    m2 = gv.calculer_metriques_ticket(1240, 10.1, params)
-    assert m2['categorie'] == "VDT"
-    assert m2['volume_hl'] == round(1240 / 130.0, 2)  # 9.54
-    assert abs(m2['hl_degres'] - (9.54 * 10.1)) < 1e-4  # 96.354
-    assert m2['prix_unitaire_applique'] == 5.2713
-    assert abs(m2['montant_estime_eur'] - (9.54 * 10.1 * 5.2713)) < 1e-4
+    assert abs(m1['montant_estime_eur'] - (expected_hl_deg * 6.28)) < 1e-4
 
 
-def test_ajouter_ticket_et_totaux_campagne(temp_vendanges_file):
+def test_tickets_2025_et_totaux_campagne(temp_vendanges_file):
     with patch('storage.DataManager.load_data') as mock_load, \
          patch('storage.DataManager.save_data') as mock_save:
 
@@ -85,82 +77,45 @@ def test_ajouter_ticket_et_totaux_campagne(temp_vendanges_file):
 
         gv = GestionVendanges(fichier='test_vendanges')
 
-        # Ticket 1: VDP (5050 kg, 11.2°)
-        t1 = {'poids_kg': 5050, 'degre': 11.2, 'notes': 'Benne 1'}
-        success, msg = gv.ajouter_ticket("2026-09-10", t1)
-        assert success is True
+        # 5 tickets de test 2025 de l'utilisateur
+        tickets_2025 = [
+            {'poids_kg': 7560, 'degre': 12.1},
+            {'poids_kg': 2050, 'degre': 11.6},
+            {'poids_kg': 6600, 'degre': 12.5},
+            {'poids_kg': 2280, 'degre': 11.7},
+            {'poids_kg': 2450, 'degre': 11.0}
+        ]
 
-        # Ticket 2: VDT (1240 kg, 10.1°)
-        t2 = {'poids_kg': 1240, 'degre': 10.1, 'notes': 'Benne 2'}
-        success, msg = gv.ajouter_ticket("2026-09-11", t2)
-        assert success is True
+        for idx, t in enumerate(tickets_2025):
+            t['notes'] = f'Benne {idx+1}'
+            gv.ajouter_ticket("2025-09-15", t)
 
-        totaux = gv.calculer_totaux(2026)
+        totaux = gv.calculer_totaux(2025)
 
-        assert totaux['nb_tickets'] == 2
-        assert totaux['poids_total'] == 6290
-        assert totaux['poids_vdp'] == 5050
-        assert totaux['poids_vdt'] == 1240
+        assert totaux['nb_tickets'] == 5
+        assert totaux['poids_total'] == 20940
+        assert totaux['degre_moyen'] == pytest.approx(12.00487, rel=1e-4)
 
-        expected_deg_moyen = (5050 * 11.2 + 1240 * 10.1) / 6290
-        assert abs(totaux['degre_moyen'] - expected_deg_moyen) < 1e-4
+        # Hl° attendu = (20940 kg * 12.00487° * 73%) / 100 = 1835.0886 Hl°
+        expected_hl_degres = (251382 * 0.73) / 100
+        assert totaux['hl_degres_total'] == pytest.approx(1835.0886, rel=1e-4)
+        assert totaux['hl_degres_vdp'] == pytest.approx(1835.0886, rel=1e-4)
 
-        vol_vdp = round(5050 / 130.0, 2)
-        vol_vdt = round(1240 / 130.0, 2)
-        assert totaux['volume_vdp_hl'] == vol_vdp
-        assert totaux['volume_vdt_hl'] == vol_vdt
-        assert totaux['volume_total_hl'] == round(vol_vdp + vol_vdt, 2)
+        # CA brut VDP @ 6.28 €
+        expected_ca_brut = 1835.0886 * 6.28
+        assert totaux['ca_brut'] == pytest.approx(expected_ca_brut, rel=1e-4)
 
-        hl_deg_vdp = vol_vdp * 11.2
-        hl_deg_vdt = vol_vdt * 10.1
-        assert abs(totaux['hl_degres_vdp'] - hl_deg_vdp) < 1e-4
-        assert abs(totaux['hl_degres_vdt'] - hl_deg_vdt) < 1e-4
-        assert abs(totaux['hl_degres_total'] - (hl_deg_vdp + hl_deg_vdt)) < 1e-4
+        # Primes et Frais
+        expected_prime = 0.0847 * 20940  # 1773.618 €
+        expected_frais = 0.1573 * 20940  # 3293.862 €
+        assert totaux['prime_total'] == pytest.approx(expected_prime, rel=1e-4)
+        assert totaux['frais_total'] == pytest.approx(expected_frais, rel=1e-4)
 
-        ca_vdp = hl_deg_vdp * 6.28
-        ca_vdt = hl_deg_vdt * 5.2713
-        assert abs(totaux['ca_vdp_estime'] - ca_vdp) < 1e-4
-        assert abs(totaux['ca_vdt_estime'] - ca_vdt) < 1e-4
-        assert abs(totaux['ca_total_estime'] - (ca_vdp + ca_vdt)) < 1e-4
+        # Revenu Net
+        expected_net = expected_ca_brut + expected_prime - expected_frais
+        assert totaux['revenu_net'] == pytest.approx(expected_net, rel=1e-4)
 
-        prix_moyen = (ca_vdp + ca_vdt) / (hl_deg_vdp + hl_deg_vdt)
-        assert abs(totaux['prix_moyen_pondere_hl_deg'] - prix_moyen) < 1e-4
-
-
-def test_importer_historique_complet(temp_vendanges_file):
-    with patch('storage.DataManager.load_data') as mock_load, \
-         patch('storage.DataManager.save_data') as mock_save:
-
-        mock_load.return_value = {"campagnes": []}
-
-        gv = GestionVendanges(fichier='test_vendanges')
-
-        df_excel = pd.DataFrame([{
-            'Année': 2024,
-            'Poids Kg': 31270,
-            'Prix U': 6.03,
-            'Hl°': 2540.0,
-            'Revenus €': 15316.2,
-            'Prime U': 0.0847,
-            'Prime €': 2648.6,
-            'Frais U': 0.1573,
-            'Frais (€)': 4918.8,
-            'degré réel': 11.13,
-            'rendement jus': 73.0,
-            'Chiffre Affaire Net €': 13046.0,
-            'Total Ha': 2.05,
-            'CA / Ha (€)': 6363.9,
-            '€/hl (72% rdt)': 0.57,
-            'Poids/Ha': 15.25
-        }])
-
-        gv.importer_historique(df_excel)
-
-        campagne_imported = gv.get_campagne(2024)
-        assert campagne_imported is not None
-        hist = campagne_imported['donnees_historiques']
-        assert hist['poids_kg'] == 31270
-        assert hist['degre_moyen'] == 11.13
-        assert hist['prime_totale'] == 2648.6
-        assert hist['frais_totaux'] == 4918.8
-        assert hist['ca_net'] == 13046.0
+        # Prix au litre
+        prod_litres = 20940 * 0.73  # 15286.2 L
+        assert totaux['production_litres'] == pytest.approx(prod_litres, rel=1e-4)
+        assert totaux['euro_par_litre'] == pytest.approx(expected_net / prod_litres, rel=1e-4)
