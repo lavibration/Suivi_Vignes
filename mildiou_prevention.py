@@ -53,8 +53,8 @@ class ConfigVignoble:
         'nouaison': 1.8,
         'petits_pois': 1.5,
         'fermeture_grappe': 1.0,
-        'veraison': 0.6,
-        'maturite': 0.2
+        'veraison': 0.4,
+        'maturite': 0.05
     }
 
     def __init__(self, config_file: str = 'config_vignoble'):
@@ -290,6 +290,17 @@ class ModeleSimple:
         if not humid_moy_list: return 0.0, "FAIBLE"
         humid_moy = sum(humid_moy_list) / len(humid_moy_list)
         if humid_moy > 85: score_base += 1
+
+        # Kill switch thermique sur 48h
+        temp_max_list = [m.get('temp_max') for m in meteo_48h if m and m.get('temp_max') is not None]
+        if temp_max_list:
+            temp_max_48h = max(temp_max_list)
+            if temp_max_48h >= 35:
+                score_base -= 5
+            elif temp_max_48h >= 32:
+                score_base -= 2
+        score_base = max(0, score_base)
+
         score_final = score_base * stade_coef * (sensibilite_cepage / 5)
         score_final = min(10, score_final)
         if score_final >= 7:
@@ -328,6 +339,9 @@ class ModeleIPI:
 
     @staticmethod
     def calculer_ipi(meteo_evenement: Dict, duree_humectation_estimee: float) -> int:
+        temp_max = meteo_evenement.get('temp_max')
+        if temp_max is not None and temp_max >= 35:
+            return 0
         temp = meteo_evenement.get('temp_moy')
         if temp is None or temp < 10 or temp > 27: return 0
         temp_keys = sorted(ModeleIPI.IPI_TABLE.keys())
@@ -1332,7 +1346,8 @@ class SystemeDecision:
                 duree_humect = self.modele_ipi.estimer_duree_humectation(jour_max_pluie.get('precipitation'),
                                                                          jour_max_pluie.get('humidite'))
                 if duree_humect > 0:
-                    ipi_value = self.modele_ipi.calculer_ipi(jour_max_pluie, duree_humect)
+                    ipi_brut = self.modele_ipi.calculer_ipi(jour_max_pluie, duree_humect)
+                    ipi_value = round(ipi_brut * min(1.0, stade_coef))
                     if ipi_value >= 60:
                         ipi_risque = "FORT"
                     elif ipi_value >= 30:
