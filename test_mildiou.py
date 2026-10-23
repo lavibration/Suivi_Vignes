@@ -43,3 +43,58 @@ def test_systeme_decision_ipi_weighting():
     # Test with veraison stage_coef = 0.4
     res = sys_dec.analyser_parcelle(sys_dec.config.parcelles[0]['nom'], utiliser_ipi=True, debug=False, sauvegarder_historique=False)
     assert 'erreur' not in res
+
+def test_kc_stades_mapping():
+    assert ConfigVignoble.KC_STADES['repos'] == 0.1
+    assert ConfigVignoble.KC_STADES['pointe_verte'] == 0.2
+    assert ConfigVignoble.KC_STADES['floraison'] == 0.8
+    assert ConfigVignoble.KC_STADES['veraison'] == 0.5
+    assert ConfigVignoble.KC_STADES['maturite'] == 0.3
+
+def test_calculer_gdd_recalibration():
+    sys_dec = SystemeDecision()
+    parcelle = {'nom': 'Test', 'date_debourrement': None}
+    meteo = {}
+    date_actuelle = '2025-06-01'
+
+    # With manual stage 'floraison'
+    gdd_sum, stade_estime, prochain_gdd, prochain_nom, mode = sys_dec._calculer_gdd(
+        parcelle, meteo, date_actuelle, stade_manuel='floraison'
+    )
+    assert gdd_sum == 660
+    assert stade_estime == 'floraison'
+    assert prochain_nom == 'nouaison'
+    assert prochain_gdd == 820
+    assert mode == "Recalibré sur observation (floraison)"
+
+    # With manual stage 'repos'
+    gdd_sum, stade_estime, _, _, mode = sys_dec._calculer_gdd(
+        parcelle, meteo, date_actuelle, stade_manuel='repos'
+    )
+    assert gdd_sum == 0
+    assert stade_estime == 'repos'
+
+def test_bilan_rfu_kc_today():
+    from mildiou_prevention import ModeleBilanHydrique
+    from datetime import datetime
+
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    meteo = {
+        today_str: {'precipitation': 0.0, 'etp0': 4.0, 'gdd_jour': 10.0}
+    }
+    parcelle = {'nom': 'Test', 'rfu_max_mm': 100.0}
+
+    # Bilan RFU with 'floraison' (KC_STADES['floraison'] = 0.8)
+    res = ModeleBilanHydrique.calculer_bilan_rfu(
+        meteo_historique=meteo,
+        parcelle=parcelle,
+        stade_manuel='floraison',
+        kc_calendrier={},
+        rfu_max_mm=100.0,
+        f_runoff=0.1,
+        i_const_mm=1.0,
+        gdd_cumul_actuel=660.0
+    )
+    # ETc = Kc * etp0 * ks = 0.8 * 4.0 * 1.0 = 3.2
+    # rfu_actuelle = 100.0 - 3.2 = 96.8
+    assert res['rfu_mm'] == 96.8
