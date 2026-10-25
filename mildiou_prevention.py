@@ -56,6 +56,23 @@ class ConfigVignoble:
         'veraison': 0.4,
         'maturite': 0.05
     }
+    KC_STADES = {
+        'repos': 0.1,
+        'bourgeon_hiver': 0.1,
+        'bourgeon_coton': 0.1,
+        'pointe_verte': 0.2,
+        'sorties_feuilles': 0.4,
+        'feuilles_etalees': 0.6,
+        'grappes_visibles': 0.7,
+        'boutons_agglomeres': 0.7,
+        'boutons_separes': 0.7,
+        'floraison': 0.8,
+        'nouaison': 0.8,
+        'petits_pois': 0.8,
+        'fermeture_grappe': 0.7,
+        'veraison': 0.5,
+        'maturite': 0.3
+    }
 
     def __init__(self, config_file: str = 'config_vignoble'):
         self.config_key = config_file.replace('.json', '')
@@ -483,16 +500,16 @@ class ModeleBilanHydrique:
             etp0 = data_jour.get('etp0', 0.0) or 0.0
             gdd_jour = data_jour.get('gdd_jour', 0.0) or 0.0 # On a besoin de cumuler les GDD pour le Kc
 
-            # 2. Kc Dynamique (Estimation du cumul au jour J)
-            # Pour la simulation, on pourrait cumuler les GDD ici si besoin
-            # Mais on va utiliser le Kc calendrier si GDD non dispo (période hivernale)
-            # Jules : On utilise Kc GDD si on est après le débourrement estimé
-            if date_obj.month >= 3 and date_obj.month <= 10:
-                # Simulation simple du cumul GDD progressif pour le Kc
-                # Dans une version parfaite, on passerait le dictionnaire des GDD cumulés
-                Kc = ModeleBilanHydrique.calculer_kc_gdd(gdd_cumul_actuel * (dates_utiles.index(date_obj)/len(dates_utiles)))
+            # NOUVEAU : Calcul du Kc
+            # Si on évalue la date d'aujourd'hui, on utilise la réalité du terrain (stade manuel)
+            if date_obj == aujourdhui:
+                Kc = ConfigVignoble.KC_STADES.get(stade_manuel, 0.1)
             else:
-                Kc = kc_calendrier.get(str(date_obj.month), 0.1)
+                # Pour reconstruire l'historique passé, on utilise le Kc lissé par GDD recalibré
+                if date_obj.month >= 3 and date_obj.month <= 10:
+                    Kc = ModeleBilanHydrique.calculer_kc_gdd(gdd_cumul_actuel * (dates_utiles.index(date_obj)/len(dates_utiles)))
+                else:
+                    Kc = kc_calendrier.get(str(date_obj.month), 0.1)
 
             # 3. Coefficient de Stress Ks (FAO-56 simplifié)
             # p = 0.5 (seuil de stress à 50% de la RFU pour la vigne)
@@ -1219,10 +1236,24 @@ class SystemeDecision:
                 if date_meteo >= date_debut_gdd and date_meteo <= aujourdhui:
                     gdd_sum += meteo_historique.get(date_str, {}).get('gdd_jour', 0.0)
 
-            for gdd_seuil, nom_stade in sorted(self.GDD_STADE_MAP.items(), reverse=True):
-                if gdd_sum >= gdd_seuil:
-                    stade_estime_gdd = nom_stade
+            # NOUVEAU : Recalage du modèle sur ton observation visuelle
+            gdd_theorique = None
+            for gdd_seuil, nom_stade in self.GDD_STADE_MAP.items():
+                if nom_stade == stade_manuel:
+                    gdd_theorique = gdd_seuil
                     break
+
+            # Si un stade manuel est renseigné (hors repos), il devient la vérité absolue
+            if gdd_theorique is not None and stade_manuel != 'repos':
+                gdd_sum = gdd_theorique
+                stade_estime_gdd = stade_manuel
+                mode_calcul = f"Recalibré sur observation ({stade_manuel})"
+            else:
+                # Sinon, on garde l'estimation classique
+                for gdd_seuil, nom_stade in sorted(self.GDD_STADE_MAP.items(), reverse=True):
+                    if gdd_sum >= gdd_seuil:
+                        stade_estime_gdd = nom_stade
+                        break
 
             prochain_stade_nom = None
             prochain_stade_gdd = None
